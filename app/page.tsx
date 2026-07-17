@@ -98,7 +98,7 @@ export default function Home() {
           </div>
 
           <div className="card p-8 sm:p-12 space-y-4">
-            <h3 className="text-2xl font-chakra font-bold text-white">Scholarship Cohort</h3>
+            <h3 className="text-[22px] font-chakra font-bold text-white leading-tight">Scholarship Cohort</h3>
             <div className="space-y-4">
               <div>
                 <div className="flex justify-between mb-2">
