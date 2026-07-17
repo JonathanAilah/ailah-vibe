@@ -19,14 +19,26 @@ export default function Dashboard() {
   const [submitTitle, setSubmitTitle] = useState('')
   const [submitDescription, setSubmitDescription] = useState('')
   const [submitCategory, setSubmitCategory] = useState<'App' | 'Game' | 'Site'>('App')
+  const [submitLiveUrl, setSubmitLiveUrl] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
+
+  const isValidVercelUrl = (url: string) => {
+    try {
+      const parsed = new URL(url)
+      return parsed.hostname.endsWith('.vercel.app') && parsed.protocol === 'https:'
+    } catch {
+      return false
+    }
+  }
 
   const handleSubmit = () => {
     if (!submitTitle.trim()) { setError('Please enter a project title.'); return }
     if (!submitDescription.trim()) { setError('Please enter a project description.'); return }
     if (submitDescription.trim().length < 20) { setError('Description must be at least 20 characters.'); return }
-    submitProject(submitTitle.trim(), submitDescription.trim(), submitCategory)
+    if (!submitLiveUrl.trim()) { setError('Please enter your Vercel live URL.'); return }
+    if (!isValidVercelUrl(submitLiveUrl.trim())) { setError('Please enter a valid Vercel URL (e.g. https://your-app.vercel.app)'); return }
+    submitProject(submitTitle.trim(), submitDescription.trim(), submitCategory, submitLiveUrl.trim())
     setSubmitted(true)
     setError('')
   }
@@ -37,6 +49,7 @@ export default function Dashboard() {
     setSubmitTitle('')
     setSubmitDescription('')
     setSubmitCategory('App')
+    setSubmitLiveUrl('')
     setError('')
   }
 
@@ -437,6 +450,39 @@ export default function Dashboard() {
                     className="w-full bg-panel-deep border border-violet-border rounded-sm px-4 py-3 text-lavender font-grotesk text-sm outline-none focus:border-violet-accent transition-colors placeholder-lavender-dim resize-none"
                   />
                   <p className="text-xs text-lavender-dim text-right font-mono">{submitDescription.length}/500</p>
+                </div>
+
+                {/* Live URL */}
+                <div className="space-y-2">
+                  <label className="font-mono text-xs text-lavender-dim uppercase tracking-widest">
+                    Vercel Live URL *
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://your-app.vercel.app"
+                    value={submitLiveUrl}
+                    onChange={(e) => { setSubmitLiveUrl(e.target.value); setError('') }}
+                    className={`w-full bg-panel-deep border rounded-sm px-4 py-3 text-lavender font-grotesk text-sm outline-none transition-colors placeholder-lavender-dim ${
+                      submitLiveUrl && !isValidVercelUrl(submitLiveUrl)
+                        ? 'border-red-500'
+                        : submitLiveUrl && isValidVercelUrl(submitLiveUrl)
+                        ? 'border-success-green'
+                        : 'border-violet-border focus:border-violet-accent'
+                    }`}
+                  />
+                  {submitLiveUrl && !isValidVercelUrl(submitLiveUrl) && (
+                    <p className="text-red-400 font-mono text-xs">
+                      ✗ Must be a Vercel URL (https://your-app.vercel.app)
+                    </p>
+                  )}
+                  {submitLiveUrl && isValidVercelUrl(submitLiveUrl) && (
+                    <p className="text-success-green font-mono text-xs">
+                      ✓ Valid Vercel URL
+                    </p>
+                  )}
+                  <p className="text-xs text-lavender-dim font-mono">
+                    Deploy your app to Vercel first, then paste the URL here
+                  </p>
                 </div>
 
                 {/* Error */}
