@@ -5,14 +5,15 @@ import Link from 'next/link'
 import { useAppContext } from '@/app/context'
 
 export default function Dashboard() {
-  const { projects, submitProject, user, isLoggedIn } = useAppContext()
+  const { projects, submitProject, user, isLoggedIn, awardXP } = useAppContext()
   const userName = user ? user.fullName.split(' ')[0].toUpperCase() : 'BUILDER'
   const streakDays = 0
-  const currentLevel = 1
-  const nextLevel = 2
-  const currentXP = 0
+  const currentXP = user?.xp || 0
+  const currentLevel = user?.level || Math.floor(currentXP / 500) + 1
+  const nextLevel = currentLevel + 1
+  const xpIntoLevel = currentXP % 500
   const maxXP = 500
-  const xpProgress = (currentXP / maxXP) * 100
+  const xpProgress = (xpIntoLevel / maxXP) * 100
 
   // Submission form state
   const [showSubmitModal, setShowSubmitModal] = useState(false)
@@ -39,6 +40,7 @@ export default function Dashboard() {
     if (!submitLiveUrl.trim()) { setError('Please enter your Vercel live URL.'); return }
     if (!isValidVercelUrl(submitLiveUrl.trim())) { setError('Please enter a valid Vercel URL (e.g. https://your-app.vercel.app)'); return }
     submitProject(submitTitle.trim(), submitDescription.trim(), submitCategory, submitLiveUrl.trim())
+    awardXP(100) // +100 XP for shipping a project
     setSubmitted(true)
     setError('')
   }
@@ -74,9 +76,9 @@ export default function Dashboard() {
 
   const badges = [
     { id: 1, name: 'First Ship', earned: projects.length > 0 },
-    { id: 2, name: '1K Votes', earned: false },
-    { id: 3, name: 'Podium', earned: false },
-    { id: 4, name: 'Legend', earned: false },
+    { id: 2, name: 'Level 2', earned: currentLevel >= 2 },
+    { id: 3, name: 'Level 5', earned: currentLevel >= 5 },
+    { id: 4, name: 'Course Complete', earned: currentXP >= 575 },
   ]
 
   return (
@@ -128,7 +130,7 @@ export default function Dashboard() {
               </div>
               <div>
                 <p className="font-mono text-xs text-lavender-dim uppercase tracking-widest mb-2">NEXT: LVL {nextLevel}</p>
-                <p className="text-4xl font-chakra font-bold text-orange-primary">{maxXP - currentXP}</p>
+                <p className="text-4xl font-chakra font-bold text-orange-primary">{maxXP - xpIntoLevel}</p>
                 <p className="text-xs text-lavender-dim">XP to go</p>
               </div>
               <div className="col-span-2">
@@ -142,7 +144,7 @@ export default function Dashboard() {
                   </span>
                 </div>
                 <p className="text-xs text-lavender-dim mt-2">
-                  {currentXP.toLocaleString()} / {maxXP.toLocaleString()} XP
+                  {xpIntoLevel.toLocaleString()} / {maxXP.toLocaleString()} XP this level · {currentXP.toLocaleString()} total XP
                 </p>
               </div>
             </div>
@@ -370,6 +372,10 @@ export default function Dashboard() {
                   <p className="font-mono text-xs text-success-green uppercase tracking-widest">✓ Submitted</p>
                   <p className="font-chakra font-bold text-white">{submitTitle}</p>
                   <p className="text-sm text-lavender-muted">{submitCategory}</p>
+                </div>
+                <div className="bg-panel-deep rounded p-4 border border-orange-primary/30 inline-block mx-auto px-8">
+                  <p className="font-mono text-xs text-orange-primary uppercase tracking-widest mb-1">XP EARNED</p>
+                  <p className="text-3xl font-chakra font-bold text-white">+100 XP</p>
                 </div>
                 <div className="flex gap-3">
                   <button
