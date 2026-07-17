@@ -32,9 +32,12 @@ export default function VibeatThons() {
               >
                 START LEARNING FREE →
               </Link>
-              <button className="px-6 py-3 rounded-sm border border-lavender-muted text-lavender-muted font-chakra font-bold text-sm uppercase transition-all hover:bg-surface-violet hover:-translate-y-0.5">
+              <a
+                href="#arena-live"
+                className="px-6 py-3 rounded-sm border border-lavender-muted text-lavender-muted font-chakra font-bold text-sm uppercase transition-all hover:bg-surface-violet hover:-translate-y-0.5 text-center"
+              >
                 SEE WHAT'S LIVE ↓
-              </button>
+              </a>
             </div>
           </div>
 
