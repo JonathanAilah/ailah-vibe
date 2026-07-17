@@ -7,11 +7,11 @@ import { useAppContext } from '@/app/context'
 export default function Dashboard() {
   const { projects, submitProject, user, isLoggedIn } = useAppContext()
   const userName = user ? user.fullName.split(' ')[0].toUpperCase() : 'BUILDER'
-  const streakDays = 12
-  const currentLevel = 7
-  const nextLevel = 8
-  const currentXP = 1660
-  const maxXP = 2000
+  const streakDays = 0
+  const currentLevel = 1
+  const nextLevel = 2
+  const currentXP = 0
+  const maxXP = 500
   const xpProgress = (currentXP / maxXP) * 100
 
   // Submission form state
@@ -60,9 +60,9 @@ export default function Dashboard() {
   ]
 
   const badges = [
-    { id: 1, name: 'First Ship', earned: true },
-    { id: 2, name: '1K Votes', earned: true },
-    { id: 3, name: 'Podium', earned: true },
+    { id: 1, name: 'First Ship', earned: projects.length > 0 },
+    { id: 2, name: '1K Votes', earned: false },
+    { id: 3, name: 'Podium', earned: false },
     { id: 4, name: 'Legend', earned: false },
   ]
 
@@ -98,7 +98,7 @@ export default function Dashboard() {
           <div className="card px-6 py-3 flex items-center gap-2">
             <span className="w-2 h-2 bg-success-green rounded-full animate-glow-pulse" />
             <span className="font-chakra font-bold text-white">
-              {streakDays}-DAY STREAK · KEEP IT ALIVE
+              {streakDays > 0 ? `${streakDays}-DAY STREAK · KEEP IT ALIVE` : 'START YOUR STREAK TODAY'}
             </span>
           </div>
         </div>
