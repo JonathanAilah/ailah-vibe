@@ -29,15 +29,18 @@ export default function Home() {
             >
               START LEARNING FREE →
             </Link>
-            <button className="px-6 py-3 rounded-sm border border-lavender-muted text-lavender-muted font-chakra font-bold text-sm uppercase transition-all hover:bg-surface-violet hover:-translate-y-0.5">
+            <a
+              href="#impact-stats"
+              className="px-6 py-3 rounded-sm border border-lavender-muted text-lavender-muted font-chakra font-bold text-sm uppercase transition-all hover:bg-surface-violet hover:-translate-y-0.5 text-center"
+            >
               LEARN MORE ↓
-            </button>
+            </a>
           </div>
         </div>
       </section>
 
       {/* Impact Stats */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-16">
+      <section id="impact-stats" className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="card p-6 sm:p-8">
             <CountUpStat end={12480} label="Beginners Empowered" />
