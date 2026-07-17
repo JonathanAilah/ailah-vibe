@@ -14,7 +14,7 @@ const US_STATES = [
 
 export default function LoginPage() {
   const router = useRouter()
-  const { login, signup, loginWithProfile } = useAppContext()
+  const { login, signup, loginWithProfile, setUserId } = useAppContext()
   const [mode, setMode] = useState<'login' | 'signup'>('login')
 
   // Login fields
@@ -89,6 +89,7 @@ export default function LoginPage() {
 
     setSignupLoading(true)
 
+    let newUserId: string | undefined
     try {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
@@ -109,6 +110,7 @@ export default function LoginPage() {
         setSignupLoading(false)
         return
       }
+      newUserId = data.userId
     } catch (err) {
       console.log('Supabase unavailable, using localStorage')
     }
@@ -125,6 +127,10 @@ export default function LoginPage() {
       xp: 0,
       level: 1,
     })
+
+    if (newUserId) {
+      setUserId(email.trim().toLowerCase(), newUserId)
+    }
 
     setSignupLoading(false)
     router.push('/dashboard')
