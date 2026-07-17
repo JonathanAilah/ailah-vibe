@@ -56,7 +56,7 @@ const categoryColors: Record<string, string> = {
 }
 
 export const Leaderboard = () => {
-  const { votes: appVotes, voteOnBuild, userVotes, userIdentifier, projects } = useAppContext()
+  const { votes: appVotes, voteOnBuild, userVotes, userIdentifier, projects, isLoggedIn } = useAppContext()
   const [filter, setFilter] = useState<'ALL' | 'APPS' | 'GAMES' | 'SITES'>('ALL')
   const [localVotes, setLocalVotes] = useState<Record<string, number>>({})
   const [selectedEntry, setSelectedEntry] = useState<LeaderboardEntry | null>(null)
@@ -75,20 +75,24 @@ export const Leaderboard = () => {
     tryItUrl: '#',
   }))
 
-  const allEntries = [...submittedEntries, ...mockLeaderboard].map((e, i) => ({
-    ...e,
-    rank: i + 1,
-  }))
+  const allEntries = [...submittedEntries, ...mockLeaderboard]
+    .map((e) => ({
+      ...e,
+      liveVotes: appVotes[e.id] || e.votes + (localVotes[e.id] || 0),
+    }))
+    .sort((a, b) => b.liveVotes - a.liveVotes)
+    .map((e, i) => ({ ...e, rank: i + 1 }))
 
   const hasVoted = (buildId: string) =>
     Array.from(userVotes).some((vote) => vote === `${buildId}_${userIdentifier}`)
 
-  const maxVotes = Math.max(
-    1,
-    ...allEntries.map((e) => appVotes[e.id] || e.votes + (localVotes[e.id] || 0))
-  )
+  const maxVotes = Math.max(1, ...allEntries.map((e) => e.liveVotes))
 
   const handleVote = (buildId: string) => {
+    if (!isLoggedIn) {
+      window.location.href = '/login'
+      return
+    }
     const success = voteOnBuild(buildId, userIdentifier)
     if (success) setLocalVotes((prev) => ({ ...prev, [buildId]: (prev[buildId] || 0) + 1 }))
   }
@@ -123,7 +127,7 @@ export const Leaderboard = () => {
       {/* Entries */}
       <div className="space-y-3">
         {filtered.map((entry) => {
-          const totalVotes = appVotes[entry.id] || entry.votes + (localVotes[entry.id] || 0)
+          const totalVotes = entry.liveVotes
           const voteShareWidth = (totalVotes / maxVotes) * 100
           const voted = hasVoted(entry.id)
           const isNew = projects.some((p) => p.id === entry.id)
@@ -189,7 +193,7 @@ export const Leaderboard = () => {
                       : 'bg-orange-primary text-ink hover:shadow-orange-glow-hover hover:-translate-y-0.5'
                   }`}
                 >
-                  {voted ? '✓ VOTED' : '▲ VOTE'}
+                  {voted ? '✓ VOTED' : isLoggedIn ? '▲ VOTE' : '🔒 LOGIN'}
                 </button>
               </div>
             </div>
