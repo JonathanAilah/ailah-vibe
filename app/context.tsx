@@ -307,13 +307,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       ...prev,
     ])
 
-    // Sync to Supabase in the background so admins can see and moderate it
+    // Sync to Supabase in the background so admins can see and moderate it,
+    // and link it to whichever vibe-a-thon is currently live (if any)
     if (user?.id) {
-      fetch('/api/projects/submit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.id, title, description, category }),
-      }).catch(() => console.log('Project sync failed'))
+      fetch('/api/vibe-a-thons/current')
+        .then((r) => r.json())
+        .then((current) => {
+          const vibeAThonId = current?.vibeAThon?.status === 'live' ? current.vibeAThon.id : null
+          return fetch('/api/projects/submit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: user.id, title, description, category, vibeAThonId }),
+          })
+        })
+        .catch(() => console.log('Project sync failed'))
     }
   }
 
