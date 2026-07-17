@@ -5,23 +5,30 @@ export async function POST(request: NextRequest) {
   try {
     const { email, password, fullName, username, age, city, state } = await request.json()
 
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+    // Debug: check if env vars are loaded
+    if (!supabaseUrl || !serviceRoleKey) {
+      return NextResponse.json({
+        error: `Missing env vars: URL=${!!supabaseUrl} KEY=${!!serviceRoleKey}`
+      }, { status: 500 })
+    }
+
     // Validate required fields
     if (!email || !password || !fullName || !username || !age || !city || !state) {
       return NextResponse.json({ error: 'All fields are required' }, { status: 400 })
     }
 
-    // Create admin client (server-side only — never exposed to browser)
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-      { auth: { autoRefreshToken: false, persistSession: false } }
-    )
+    const supabase = createClient(supabaseUrl, serviceRoleKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    })
 
     // Create auth user
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email: email.toLowerCase(),
       password,
-      email_confirm: true, // Auto-confirm email
+      email_confirm: true,
       user_metadata: {
         full_name: fullName,
         username: username.toLowerCase(),
@@ -38,9 +45,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: authError.message }, { status: 400 })
     }
 
-    // Save profile to profiles table
+    // Save profile
     if (authData.user) {
-      const { error: profileError } = await supabase.from('profiles').upsert({
+      await supabase.from('profiles').upsert({
         id: authData.user.id,
         full_name: fullName,
         username: username.toLowerCase(),
@@ -49,15 +56,12 @@ export async function POST(request: NextRequest) {
         city,
         state,
       })
-
-      if (profileError) {
-        console.error('Profile creation error:', profileError)
-      }
     }
 
     return NextResponse.json({ success: true, userId: authData.user?.id })
-  } catch (error) {
-    console.error('Signup error:', error)
-    return NextResponse.json({ error: 'Server error. Please try again.' }, { status: 500 })
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown error'
+    console.error('Signup error:', message)
+    return NextResponse.json({ error: message }, { status: 500 })
   }
 }
