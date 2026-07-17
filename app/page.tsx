@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { CountUpStat } from '@/components/CountUpStat'
 import { Countdown } from '@/components/Countdown'
+import { TerminalWindow } from '@/components/TerminalWindow'
 
 export default function Home() {
   const nextVibeatthonDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days from now
@@ -11,36 +12,56 @@ export default function Home() {
     <div className="space-y-24">
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-16 py-12 sm:py-20 lg:py-32">
-        <div className="space-y-8">
-          <div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-chakra font-bold text-white leading-tight">
-              Learn AI. Build Real.{' '}
-              <span className="text-orange-primary">Win Prizes.</span>
-            </h1>
+        <div className="grid lg:grid-cols-2 gap-12 items-center">
+          {/* Left */}
+          <div className="space-y-8">
+            <div>
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-chakra font-bold text-white leading-tight">
+                Learn AI. Build Real.{' '}
+                <span className="text-orange-primary">Win Prizes.</span>
+              </h1>
+            </div>
+            <p className="text-base sm:text-lg text-lavender-muted max-w-2xl">
+              Vibe Coden teaches non-technical teens to describe what they want, let AI build it, and ship real apps,
+              games, and websites. Then compete in vibe-a-thons for cash prizes.
+            </p>
+            <div className="flex flex-wrap gap-4">
+              <Link
+                href="/learn/lesson-1"
+                className="px-6 py-3 rounded-sm bg-orange-primary text-ink font-chakra font-bold text-sm uppercase transition-all hover:shadow-orange-glow-hover hover:-translate-y-0.5"
+              >
+                START LEARNING FREE →
+              </Link>
+              <a
+                href="#impact-stats"
+                className="px-6 py-3 rounded-sm border border-lavender-muted text-lavender-muted font-chakra font-bold text-sm uppercase transition-all hover:bg-surface-violet hover:-translate-y-0.5 text-center"
+              >
+                LEARN MORE ↓
+              </a>
+              <Link
+                href="/fund-a-scholarship"
+                className="px-6 py-3 rounded-sm border border-orange-primary text-orange-primary font-chakra font-bold text-sm uppercase transition-all hover:bg-orange-primary/10 hover:-translate-y-0.5 text-center"
+              >
+                ♥ DONATE
+              </Link>
+            </div>
           </div>
-          <p className="text-base sm:text-lg text-lavender-muted max-w-2xl">
-            Vibe Coden teaches non-technical teens to describe what they want, let AI build it, and ship real apps,
-            games, and websites. Then compete in vibe-a-thons for cash prizes.
-          </p>
-          <div className="flex flex-wrap gap-4">
-            <Link
-              href="/learn/lesson-1"
-              className="px-6 py-3 rounded-sm bg-orange-primary text-ink font-chakra font-bold text-sm uppercase transition-all hover:shadow-orange-glow-hover hover:-translate-y-0.5"
-            >
-              START LEARNING FREE →
-            </Link>
-            <a
-              href="#impact-stats"
-              className="px-6 py-3 rounded-sm border border-lavender-muted text-lavender-muted font-chakra font-bold text-sm uppercase transition-all hover:bg-surface-violet hover:-translate-y-0.5 text-center"
-            >
-              LEARN MORE ↓
-            </a>
-            <Link
-              href="/fund-a-scholarship"
-              className="px-6 py-3 rounded-sm border border-orange-primary text-orange-primary font-chakra font-bold text-sm uppercase transition-all hover:bg-orange-primary/10 hover:-translate-y-0.5 text-center"
-            >
-              ♥ DONATE
-            </Link>
+
+          {/* Right - Terminal */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-hero blur-3xl opacity-20 -z-10" />
+            <TerminalWindow />
+
+            <div className="absolute -top-4 -right-8 animate-floaty">
+              <div className="bg-panel-raised border border-violet-border rounded-full px-4 py-2 font-mono text-xs text-lavender-muted">
+                {'</> APPS'}
+              </div>
+            </div>
+            <div className="absolute -bottom-4 -left-8 animate-floaty2">
+              <div className="bg-panel-raised border border-orange-border rounded-full px-4 py-2 font-mono text-xs text-orange-primary">
+                {'▶ GAMES'}
+              </div>
+            </div>
           </div>
         </div>
       </section>
