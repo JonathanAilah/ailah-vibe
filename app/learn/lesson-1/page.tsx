@@ -61,7 +61,7 @@ const quizQuestions = [
 ]
 
 export default function Lesson1() {
-  const { awardXP } = useAppContext()
+  const { awardXP, isLoggedIn } = useAppContext()
   const [quizStarted, setQuizStarted] = useState(false)
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
@@ -338,11 +338,16 @@ export default function Lesson1() {
             <div className="text-6xl">🧠</div>
             <h3 className="text-2xl font-chakra font-bold text-white">Ready for the quiz?</h3>
             <p className="text-lavender-muted">4 questions · No time limit · Instant feedback</p>
+            {!isLoggedIn && (
+              <p className="text-xs font-mono text-orange-primary bg-orange-primary/10 border border-orange-primary/30 rounded p-3 inline-block">
+                📝 Create a free account to take this quiz and start earning XP
+              </p>
+            )}
             <button
-              onClick={() => setQuizStarted(true)}
+              onClick={() => { if (!isLoggedIn) { window.location.href = '/login'; return } setQuizStarted(true) }}
               className="px-8 py-3 rounded-sm bg-orange-primary text-ink font-chakra font-bold text-sm uppercase transition-all hover:shadow-orange-glow-hover hover:-translate-y-0.5"
             >
-              START QUIZ →
+              {isLoggedIn ? 'START QUIZ →' : 'SIGN UP TO START QUIZ →'}
             </button>
           </div>
         ) : quizComplete ? (
