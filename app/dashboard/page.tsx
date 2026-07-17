@@ -239,16 +239,24 @@ export default function Dashboard() {
 
           {/* Submit New Build tile */}
           <div
-            onClick={() => setShowSubmitModal(true)}
+            onClick={() => {
+              if (!isLoggedIn) {
+                window.location.href = '/login'
+              } else {
+                setShowSubmitModal(true)
+              }
+            }}
             className="card border-2 border-dashed border-violet-accent/50 min-h-80 flex items-center justify-center hover:border-violet-accent transition-colors cursor-pointer group"
           >
             <div className="text-center space-y-2">
-              <div className="text-4xl text-lavender-dim group-hover:text-lavender transition-colors">+</div>
+              <div className="text-4xl text-lavender-dim group-hover:text-lavender transition-colors">
+                {isLoggedIn ? '+' : '🔒'}
+              </div>
               <p className="font-chakra font-bold text-lavender-muted group-hover:text-lavender transition-colors">
-                SUBMIT NEW BUILD
+                {isLoggedIn ? 'SUBMIT NEW BUILD' : 'LOGIN TO SUBMIT'}
               </p>
               <p className="font-mono text-xs text-lavender-dim">
-                Enter the vibe-a-thon
+                {isLoggedIn ? 'Enter the vibe-a-thon' : 'Members only'}
               </p>
             </div>
           </div>
