@@ -5,10 +5,36 @@ export async function GET() {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  return NextResponse.json({
-    hasUrl: !!url,
-    urlPreview: url ? url.substring(0, 30) + '...' : 'MISSING',
-    hasServiceKey: !!key,
-    hasAnonKey: !!anonKey,
-  })
+  const results: Record<string, string> = {
+    fullUrl: url || 'MISSING',
+    hasServiceKey: String(!!key),
+    hasAnonKey: String(!!anonKey),
+  }
+
+  try {
+    const testRes = await fetch('https://jsonplaceholder.typicode.com/todos/1')
+    results.generalInternetTest = `OK - status ${testRes.status}`
+  } catch (e: unknown) {
+    results.generalInternetTest = `FAILED - ${e instanceof Error ? e.message : String(e)}`
+  }
+
+  if (url) {
+    try {
+      const supaRes = await fetch(url)
+      results.supabaseBaseTest = `OK - status ${supaRes.status}`
+    } catch (e: unknown) {
+      results.supabaseBaseTest = `FAILED - ${e instanceof Error ? e.message : String(e)}`
+    }
+
+    try {
+      const authRes = await fetch(`${url}/auth/v1/settings`, {
+        headers: { 'apikey': anonKey || '' },
+      })
+      results.supabaseAuthTest = `OK - status ${authRes.status}`
+    } catch (e: unknown) {
+      results.supabaseAuthTest = `FAILED - ${e instanceof Error ? e.message : String(e)}`
+    }
+  }
+
+  return NextResponse.json(results)
 }
