@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid messages' }, { status: 400 })
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY
+    const apiKey = process.env.OPENAI_API_KEY
     if (!apiKey) {
       return NextResponse.json({ error: 'API key not configured' }, { status: 500 })
     }
@@ -47,32 +47,35 @@ export async function POST(request: NextRequest) {
         ? `\n\nThe student is currently on ${context} of the Vibe Coden course.`
         : '')
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const openaiMessages = [
+      { role: 'system', content: systemPrompt },
+      ...messages.map((m: { role: string; content: string }) => ({
+        role: m.role === 'assistant' ? 'assistant' : 'user',
+        content: m.content,
+      })),
+    ]
+
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
+        'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
+        model: 'gpt-4o-mini',
         max_tokens: 1000,
-        system: systemPrompt,
-        messages: messages.map((m: { role: string; content: string }) => ({
-          role: m.role,
-          content: m.content,
-        })),
+        messages: openaiMessages,
       }),
     })
 
     if (!response.ok) {
       const error = await response.text()
-      console.error('Anthropic API error:', error)
+      console.error('OpenAI API error:', error)
       return NextResponse.json({ error: 'AI service error' }, { status: 500 })
     }
 
     const data = await response.json()
-    const reply = data.content?.[0]?.text || "Hmm, I had trouble with that. Try asking again!"
+    const reply = data.choices?.[0]?.message?.content || "Hmm, I had trouble with that. Try asking again!"
 
     return NextResponse.json({ reply })
   } catch (error) {
