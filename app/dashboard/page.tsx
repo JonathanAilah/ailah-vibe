@@ -65,11 +65,11 @@ export default function Dashboard() {
   }))
 
   const lessons = [
-    { id: 1, title: 'Getting Started with AI', done: true, current: false },
-    { id: 2, title: 'Building Your First App', done: true, current: false },
-    { id: 3, title: 'Deploying to Production', done: false, current: true },
-    { id: 4, title: 'Advanced AI Prompting', done: false, current: false },
-    { id: 5, title: 'Community & Collaboration', done: false, current: false },
+    { id: 1, title: 'Intro to AI & Vibe Coding', done: false, current: true, href: '/learn/lesson-1' },
+    { id: 2, title: 'Build Your First App', done: false, current: false, href: '/learn/lesson-2' },
+    { id: 3, title: 'Make It Look Good', done: false, current: false, href: '/learn/lesson-3' },
+    { id: 4, title: 'Deploy & Share Your App', done: false, current: false, href: '/learn/lesson-4' },
+    { id: 5, title: 'Enter Your First Vibe-a-thon', done: false, current: false, href: '/learn/lesson-5' },
   ]
 
   const badges = [
@@ -295,8 +295,8 @@ export default function Dashboard() {
             <h3 className="eyebrow">// LEARNING PATH</h3>
             <div className="space-y-4">
               {lessons.map((lesson) => (
-                <div key={lesson.id} className="flex gap-4 items-start">
-                  <div className="mt-1">
+                <Link key={lesson.id} href={lesson.href} className="flex gap-4 items-start group">
+                  <div className="mt-1 flex-shrink-0">
                     {lesson.done ? (
                       <div className="w-5 h-5 rounded-sm bg-success-green flex items-center justify-center text-panel-deep text-sm">✓</div>
                     ) : lesson.current ? (
@@ -305,17 +305,17 @@ export default function Dashboard() {
                       <div className="w-5 h-5 rounded-sm border border-lavender-dim" />
                     )}
                   </div>
-                  <p className={`font-chakra font-bold text-sm ${lesson.done ? 'line-through text-success-green' : 'text-white'}`}>
+                  <p className={`font-chakra font-bold text-sm group-hover:text-orange-primary transition-colors ${lesson.done ? 'line-through text-success-green' : lesson.current ? 'text-orange-primary' : 'text-lavender-muted'}`}>
                     {lesson.title}
                   </p>
-                </div>
+                </Link>
               ))}
             </div>
             <Link
               href="/learn/lesson-1"
               className="w-full block text-center px-6 py-3 rounded-sm bg-orange-primary text-ink font-chakra font-bold text-sm uppercase transition-all hover:shadow-orange-glow-hover hover:-translate-y-0.5"
             >
-              RESUME LESSON →
+              START LESSON 1 →
             </Link>
           </div>
 
