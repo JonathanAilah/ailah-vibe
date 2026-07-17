@@ -57,7 +57,7 @@ const quizQuestions = [
 ]
 
 export default function Lesson5() {
-  const { awardXP } = useAppContext()
+  const { awardXP, isLoggedIn } = useAppContext()
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
   const [showExplanation, setShowExplanation] = useState(false)
@@ -287,8 +287,13 @@ export default function Lesson5() {
             <div className="text-6xl">🏆</div>
             <h3 className="text-2xl font-chakra font-bold text-white">Final quiz of Course 1!</h3>
             <p className="text-lavender-muted">4 questions · Complete the course · Earn your certificate</p>
-            <button onClick={() => setQuizStarted(true)} className="px-8 py-3 rounded-sm bg-orange-primary text-ink font-chakra font-bold text-sm uppercase transition-all hover:shadow-orange-glow-hover hover:-translate-y-0.5">
-              START FINAL QUIZ →
+            {!isLoggedIn && (
+              <p className="text-xs font-mono text-orange-primary bg-orange-primary/10 border border-orange-primary/30 rounded p-3 inline-block mb-2">
+                📝 Create a free account to take this quiz and start earning XP
+              </p>
+            )}
+            <button onClick={() => { if (!isLoggedIn) { window.location.href = '/login'; return } setQuizStarted(true) }} className="px-8 py-3 rounded-sm bg-orange-primary text-ink font-chakra font-bold text-sm uppercase transition-all hover:shadow-orange-glow-hover hover:-translate-y-0.5">
+              {isLoggedIn ? 'START FINAL QUIZ →' : 'SIGN UP TO START →'}
             </button>
           </div>
         ) : quizComplete ? (
