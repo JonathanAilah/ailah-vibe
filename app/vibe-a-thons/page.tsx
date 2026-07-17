@@ -62,7 +62,7 @@ export default function VibeatThons() {
       </section>
 
       {/* Three Steps */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-16">
+      <section id="three-steps" className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-16">
         <div className="mb-12">
           <p className="eyebrow mb-4">THE PROCESS</p>
           <h2 className="text-3xl sm:text-4xl font-chakra font-bold text-white">
