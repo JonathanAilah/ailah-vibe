@@ -36,6 +36,7 @@ export interface AppContextType {
   isLoggedIn: boolean
   login: (email: string, password: string) => boolean
   signup: (data: User & { password: string }) => boolean
+  loginWithProfile: (userData: User, password: string) => void
   logout: () => void
   // Cart
   cart: CartItem[]
@@ -120,6 +121,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       accounts[data.email] = { ...data }
       localStorage.setItem('vibeCoden_accounts', JSON.stringify(accounts))
       const { password: _p, ...userOnly } = data
+
+      // Sync to Supabase in background
+      fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      }).catch(() => console.log('Supabase sync failed'))
+
       setUser(userOnly)
       return true
     } catch {
@@ -138,6 +147,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch {
       return false
     }
+  }
+
+  const loginWithProfile = (userData: User, password: string) => {
+    try {
+      const accounts = JSON.parse(localStorage.getItem('vibeCoden_accounts') || '{}')
+      accounts[userData.email] = { ...userData, password }
+      localStorage.setItem('vibeCoden_accounts', JSON.stringify(accounts))
+    } catch {
+      // ignore
+    }
+    setUser(userData)
   }
 
   const logout = () => setUser(null)
@@ -188,7 +208,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   return (
     <AppContext.Provider value={{
-      user, isLoggedIn: !!user, login, signup, logout,
+      user, isLoggedIn: !!user, login, signup, loginWithProfile, logout,
       cart, addToCart, removeFromCart, clearCart, cartTotal,
       votes, userVotes, voteOnBuild, userIdentifier,
       projects, submitProject,
