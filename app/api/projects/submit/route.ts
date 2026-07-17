@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId, title, description, category } = await request.json()
+    const { userId, title, description, category, vibeAThonId } = await request.json()
 
     if (!userId || !title || !description || !category) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
         title,
         description,
         category,
+        vibe_a_thon_id: vibeAThonId || null,
       }),
     })
 
