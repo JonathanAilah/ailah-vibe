@@ -56,7 +56,7 @@ const categoryColors: Record<string, string> = {
 }
 
 export const Leaderboard = () => {
-  const { votes: appVotes, voteOnBuild, userVotes, userIdentifier, projects, isLoggedIn } = useAppContext()
+  const { votes: appVotes, voteOnBuild, userVotes, user, projects, isLoggedIn } = useAppContext()
   const [filter, setFilter] = useState<'ALL' | 'APPS' | 'GAMES' | 'SITES'>('ALL')
   const [localVotes, setLocalVotes] = useState<Record<string, number>>({})
   const [selectedEntry, setSelectedEntry] = useState<LeaderboardEntry | null>(null)
@@ -72,7 +72,7 @@ export const Leaderboard = () => {
     votes: 0,
     description: p.description,
     builtWith: ['Claude AI'],
-    tryItUrl: '#',
+    tryItUrl: p.liveUrl || '#',
   }))
 
   const allEntries = [...submittedEntries, ...mockLeaderboard]
@@ -84,7 +84,7 @@ export const Leaderboard = () => {
     .map((e, i) => ({ ...e, rank: i + 1 }))
 
   const hasVoted = (buildId: string) =>
-    Array.from(userVotes).some((vote) => vote === `${buildId}_${userIdentifier}`)
+    Array.from(userVotes).some((vote) => vote === `${buildId}_${user?.email}`)
 
   const maxVotes = Math.max(1, ...allEntries.map((e) => e.liveVotes))
 
@@ -93,7 +93,7 @@ export const Leaderboard = () => {
       window.location.href = '/login'
       return
     }
-    const success = voteOnBuild(buildId, userIdentifier)
+    const success = voteOnBuild(buildId)
     if (success) setLocalVotes((prev) => ({ ...prev, [buildId]: (prev[buildId] || 0) + 1 }))
   }
 
@@ -268,9 +268,16 @@ export const Leaderboard = () => {
             <div className="flex gap-3 pt-2">
               <a
                 href={selectedEntry.tryItUrl}
-                className="flex-1 text-center px-4 py-3 rounded-sm border border-violet-accent text-lavender-muted font-chakra font-bold text-sm uppercase transition-all hover:bg-surface-violet"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`flex-1 text-center px-4 py-3 rounded-sm font-chakra font-bold text-sm uppercase transition-all ${
+                  selectedEntry.tryItUrl && selectedEntry.tryItUrl !== '#'
+                    ? 'border border-violet-accent text-lavender-muted hover:bg-surface-violet'
+                    : 'border border-violet-border text-lavender-dim cursor-not-allowed opacity-50'
+                }`}
+                onClick={(e) => selectedEntry.tryItUrl === '#' && e.preventDefault()}
               >
-                TRY IT LIVE →
+                {selectedEntry.tryItUrl && selectedEntry.tryItUrl !== '#' ? 'TRY IT LIVE →' : 'NO URL YET'}
               </a>
               <button
                 onClick={() => { handleVote(selectedEntry.id); setSelectedEntry(null) }}
