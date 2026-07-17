@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import { useAppContext } from '@/app/context'
 
 const US_STATES = [
   'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA',
@@ -14,17 +14,17 @@ const US_STATES = [
 
 export default function LoginPage() {
   const router = useRouter()
-  const supabase = createClient()
+  const { login, signup } = useAppContext()
   const [mode, setMode] = useState<'login' | 'signup'>('login')
 
-  // Login state
+  // Login fields
   const [loginEmail, setLoginEmail] = useState('')
   const [loginPassword, setLoginPassword] = useState('')
   const [loginError, setLoginError] = useState('')
   const [loginLoading, setLoginLoading] = useState(false)
   const [showLoginPassword, setShowLoginPassword] = useState(false)
 
-  // Signup state
+  // Signup fields
   const [fullName, setFullName] = useState('')
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
@@ -39,26 +39,21 @@ export default function LoginPage() {
   const [showConfirm, setShowConfirm] = useState(false)
   const [agreedToTerms, setAgreedToTerms] = useState(false)
 
-  // ── LOGIN ──
   const handleLogin = async () => {
     setLoginError('')
     if (!loginEmail.trim()) { setLoginError('Please enter your email.'); return }
     if (!loginPassword) { setLoginError('Please enter your password.'); return }
     setLoginLoading(true)
-    const { error } = await supabase.auth.signInWithPassword({
-      email: loginEmail.trim().toLowerCase(),
-      password: loginPassword,
-    })
+    await new Promise((r) => setTimeout(r, 600))
+    const success = login(loginEmail.trim().toLowerCase(), loginPassword)
     setLoginLoading(false)
-    if (error) {
-      setLoginError('Email or password is incorrect. Please try again.')
-    } else {
+    if (success) {
       router.push('/dashboard')
-      router.refresh()
+    } else {
+      setLoginError('Email or password is incorrect. Please try again.')
     }
   }
 
-  // ── SIGNUP ──
   const handleSignup = async () => {
     setSignupError('')
     if (!fullName.trim()) { setSignupError('Please enter your full name.'); return }
@@ -75,48 +70,22 @@ export default function LoginPage() {
     if (!agreedToTerms) { setSignupError('Please agree to the Terms of Service.'); return }
 
     setSignupLoading(true)
-
-    // Create auth user
-    const { data, error: signupError } = await supabase.auth.signUp({
+    await new Promise((r) => setTimeout(r, 800))
+    const success = signup({
+      fullName: fullName.trim(),
+      username: username.trim().toLowerCase(),
       email: email.trim().toLowerCase(),
       password,
-      options: {
-        data: {
-          full_name: fullName.trim(),
-          username: username.trim().toLowerCase(),
-          age: ageNum,
-          city: city.trim(),
-          state,
-        },
-      },
+      age,
+      city: city.trim(),
+      state,
     })
-
-    if (signupError) {
-      setSignupLoading(false)
-      if (signupError.message.includes('already registered')) {
-        setSignupError('An account with this email already exists. Try logging in instead.')
-      } else {
-        setSignupError(signupError.message)
-      }
-      return
-    }
-
-    // Save profile to profiles table
-    if (data.user) {
-      await supabase.from('profiles').upsert({
-        id: data.user.id,
-        full_name: fullName.trim(),
-        username: username.trim().toLowerCase(),
-        age: ageNum,
-        city: city.trim(),
-        state,
-        email: email.trim().toLowerCase(),
-      })
-    }
-
     setSignupLoading(false)
-    router.push('/dashboard')
-    router.refresh()
+    if (success) {
+      router.push('/dashboard')
+    } else {
+      setSignupError('An account with this email already exists. Try logging in instead.')
+    }
   }
 
   return (
@@ -158,7 +127,7 @@ export default function LoginPage() {
           </button>
         </div>
 
-        {/* ── LOGIN FORM ── */}
+        {/* LOGIN FORM */}
         {mode === 'login' && (
           <div className="card p-8 space-y-6">
             <div>
@@ -169,9 +138,7 @@ export default function LoginPage() {
             <div className="space-y-2">
               <label className="font-mono text-xs text-lavender-dim uppercase tracking-widest">Email</label>
               <input
-                type="email"
-                placeholder="you@example.com"
-                value={loginEmail}
+                type="email" placeholder="you@example.com" value={loginEmail}
                 onChange={(e) => { setLoginEmail(e.target.value); setLoginError('') }}
                 onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                 className="w-full bg-panel-deep border border-violet-border rounded-sm px-4 py-3 text-lavender font-grotesk text-sm outline-none focus:border-violet-accent transition-colors placeholder-lavender-dim"
@@ -183,32 +150,24 @@ export default function LoginPage() {
               <div className="relative">
                 <input
                   type={showLoginPassword ? 'text' : 'password'}
-                  placeholder="Your password"
-                  value={loginPassword}
+                  placeholder="Your password" value={loginPassword}
                   onChange={(e) => { setLoginPassword(e.target.value); setLoginError('') }}
                   onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                   className="w-full bg-panel-deep border border-violet-border rounded-sm px-4 py-3 pr-16 text-lavender font-grotesk text-sm outline-none focus:border-violet-accent transition-colors placeholder-lavender-dim"
                 />
-                <button
-                  onClick={() => setShowLoginPassword(!showLoginPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-lavender-dim hover:text-lavender font-mono text-xs"
-                >
+                <button onClick={() => setShowLoginPassword(!showLoginPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-lavender-dim hover:text-lavender font-mono text-xs">
                   {showLoginPassword ? 'HIDE' : 'SHOW'}
                 </button>
               </div>
             </div>
 
             {loginError && (
-              <p className="text-red-400 font-mono text-xs bg-red-500/10 border border-red-500/30 rounded p-3">
-                ⚠ {loginError}
-              </p>
+              <p className="text-red-400 font-mono text-xs bg-red-500/10 border border-red-500/30 rounded p-3">⚠ {loginError}</p>
             )}
 
-            <button
-              onClick={handleLogin}
-              disabled={loginLoading}
-              className="w-full px-6 py-4 rounded-sm bg-orange-primary text-ink font-chakra font-bold text-sm uppercase transition-all hover:shadow-orange-glow-hover hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed"
-            >
+            <button onClick={handleLogin} disabled={loginLoading}
+              className="w-full px-6 py-4 rounded-sm bg-orange-primary text-ink font-chakra font-bold text-sm uppercase transition-all hover:shadow-orange-glow-hover hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed">
               {loginLoading ? 'LOGGING IN...' : 'LOG IN →'}
             </button>
 
@@ -221,7 +180,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        {/* ── SIGNUP FORM ── */}
+        {/* SIGNUP FORM */}
         {mode === 'signup' && (
           <div className="card p-8 space-y-5">
             <div>
@@ -232,8 +191,7 @@ export default function LoginPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="font-mono text-xs text-lavender-dim uppercase tracking-widest">Full Name *</label>
-                <input
-                  type="text" placeholder="Alex Johnson" value={fullName}
+                <input type="text" placeholder="Alex Johnson" value={fullName}
                   onChange={(e) => { setFullName(e.target.value); setSignupError('') }}
                   className="w-full bg-panel-deep border border-violet-border rounded-sm px-4 py-3 text-lavender font-grotesk text-sm outline-none focus:border-violet-accent transition-colors placeholder-lavender-dim"
                 />
@@ -242,8 +200,7 @@ export default function LoginPage() {
                 <label className="font-mono text-xs text-lavender-dim uppercase tracking-widest">Username *</label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-lavender-dim font-mono text-sm">@</span>
-                  <input
-                    type="text" placeholder="alexcodes" value={username}
+                  <input type="text" placeholder="alexcodes" value={username}
                     onChange={(e) => { setUsername(e.target.value.replace(/\s/g, '')); setSignupError('') }}
                     className="w-full bg-panel-deep border border-violet-border rounded-sm pl-7 pr-4 py-3 text-lavender font-grotesk text-sm outline-none focus:border-violet-accent transition-colors placeholder-lavender-dim"
                   />
@@ -253,8 +210,7 @@ export default function LoginPage() {
 
             <div className="space-y-2">
               <label className="font-mono text-xs text-lavender-dim uppercase tracking-widest">Email *</label>
-              <input
-                type="email" placeholder="you@example.com" value={email}
+              <input type="email" placeholder="you@example.com" value={email}
                 onChange={(e) => { setEmail(e.target.value); setSignupError('') }}
                 className="w-full bg-panel-deep border border-violet-border rounded-sm px-4 py-3 text-lavender font-grotesk text-sm outline-none focus:border-violet-accent transition-colors placeholder-lavender-dim"
               />
@@ -264,13 +220,12 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <label className="font-mono text-xs text-lavender-dim uppercase tracking-widest">Password *</label>
                 <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Min 8 characters" value={password}
+                  <input type={showPassword ? 'text' : 'password'} placeholder="Min 8 characters" value={password}
                     onChange={(e) => { setPassword(e.target.value); setSignupError('') }}
                     className="w-full bg-panel-deep border border-violet-border rounded-sm px-4 py-3 pr-14 text-lavender font-grotesk text-sm outline-none focus:border-violet-accent transition-colors placeholder-lavender-dim"
                   />
-                  <button onClick={() => setShowPassword(!showPassword)} className="absolute right-2 top-1/2 -translate-y-1/2 text-lavender-dim hover:text-lavender font-mono text-xs">
+                  <button onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-lavender-dim hover:text-lavender font-mono text-xs">
                     {showPassword ? 'HIDE' : 'SHOW'}
                   </button>
                 </div>
@@ -289,9 +244,7 @@ export default function LoginPage() {
               <div className="space-y-2">
                 <label className="font-mono text-xs text-lavender-dim uppercase tracking-widest">Confirm *</label>
                 <div className="relative">
-                  <input
-                    type={showConfirm ? 'text' : 'password'}
-                    placeholder="Repeat password" value={confirmPassword}
+                  <input type={showConfirm ? 'text' : 'password'} placeholder="Repeat password" value={confirmPassword}
                     onChange={(e) => { setConfirmPassword(e.target.value); setSignupError('') }}
                     className={`w-full bg-panel-deep border rounded-sm px-4 py-3 pr-14 text-lavender font-grotesk text-sm outline-none transition-colors placeholder-lavender-dim ${
                       confirmPassword && confirmPassword !== password ? 'border-red-500'
@@ -299,7 +252,8 @@ export default function LoginPage() {
                         : 'border-violet-border focus:border-violet-accent'
                     }`}
                   />
-                  <button onClick={() => setShowConfirm(!showConfirm)} className="absolute right-2 top-1/2 -translate-y-1/2 text-lavender-dim hover:text-lavender font-mono text-xs">
+                  <button onClick={() => setShowConfirm(!showConfirm)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-lavender-dim hover:text-lavender font-mono text-xs">
                     {showConfirm ? 'HIDE' : 'SHOW'}
                   </button>
                 </div>
@@ -309,26 +263,22 @@ export default function LoginPage() {
             <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <label className="font-mono text-xs text-lavender-dim uppercase tracking-widest">Age *</label>
-                <input
-                  type="number" placeholder="16" min="13" max="100" value={age}
+                <input type="number" placeholder="16" min="13" max="100" value={age}
                   onChange={(e) => { setAge(e.target.value); setSignupError('') }}
                   className="w-full bg-panel-deep border border-violet-border rounded-sm px-4 py-3 text-lavender font-grotesk text-sm outline-none focus:border-violet-accent transition-colors placeholder-lavender-dim"
                 />
               </div>
               <div className="space-y-2">
                 <label className="font-mono text-xs text-lavender-dim uppercase tracking-widest">City *</label>
-                <input
-                  type="text" placeholder="Atlanta" value={city}
+                <input type="text" placeholder="Atlanta" value={city}
                   onChange={(e) => { setCity(e.target.value); setSignupError('') }}
                   className="w-full bg-panel-deep border border-violet-border rounded-sm px-4 py-3 text-lavender font-grotesk text-sm outline-none focus:border-violet-accent transition-colors placeholder-lavender-dim"
                 />
               </div>
               <div className="space-y-2">
                 <label className="font-mono text-xs text-lavender-dim uppercase tracking-widest">State *</label>
-                <select
-                  value={state} onChange={(e) => { setState(e.target.value); setSignupError('') }}
-                  className="w-full bg-panel-deep border border-violet-border rounded-sm px-4 py-3 text-lavender font-grotesk text-sm outline-none focus:border-violet-accent transition-colors"
-                >
+                <select value={state} onChange={(e) => { setState(e.target.value); setSignupError('') }}
+                  className="w-full bg-panel-deep border border-violet-border rounded-sm px-4 py-3 text-lavender font-grotesk text-sm outline-none focus:border-violet-accent transition-colors">
                   <option value="">--</option>
                   {US_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
@@ -339,18 +289,16 @@ export default function LoginPage() {
               <div className="bg-orange-primary/10 border border-orange-primary/30 rounded p-3">
                 <p className="font-mono text-xs text-orange-primary uppercase tracking-widest mb-1">⚠ Under 18 Notice</p>
                 <p className="text-xs text-lavender-muted">
-                  Students under 18 may require parental consent. We comply with COPPA guidelines. A parent or guardian may be contacted.
+                  Students under 18 may require parental consent. We comply with COPPA guidelines.
                 </p>
               </div>
             )}
 
             <div className="flex gap-3 items-start">
-              <button
-                onClick={() => setAgreedToTerms(!agreedToTerms)}
+              <button onClick={() => setAgreedToTerms(!agreedToTerms)}
                 className={`w-5 h-5 mt-0.5 flex-shrink-0 rounded border flex items-center justify-center transition-all ${
                   agreedToTerms ? 'bg-orange-primary border-orange-primary text-ink' : 'border-violet-border hover:border-violet-accent'
-                }`}
-              >
+                }`}>
                 {agreedToTerms && <span className="text-xs font-bold">✓</span>}
               </button>
               <p className="text-xs text-lavender-muted leading-relaxed">
@@ -362,16 +310,11 @@ export default function LoginPage() {
             </div>
 
             {signupError && (
-              <p className="text-red-400 font-mono text-xs bg-red-500/10 border border-red-500/30 rounded p-3">
-                ⚠ {signupError}
-              </p>
+              <p className="text-red-400 font-mono text-xs bg-red-500/10 border border-red-500/30 rounded p-3">⚠ {signupError}</p>
             )}
 
-            <button
-              onClick={handleSignup}
-              disabled={signupLoading}
-              className="w-full px-6 py-4 rounded-sm bg-orange-primary text-ink font-chakra font-bold text-sm uppercase transition-all hover:shadow-orange-glow-hover hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed"
-            >
+            <button onClick={handleSignup} disabled={signupLoading}
+              className="w-full px-6 py-4 rounded-sm bg-orange-primary text-ink font-chakra font-bold text-sm uppercase transition-all hover:shadow-orange-glow-hover hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed">
               {signupLoading ? 'CREATING ACCOUNT...' : 'CREATE FREE ACCOUNT →'}
             </button>
 
