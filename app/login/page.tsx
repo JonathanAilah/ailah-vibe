@@ -44,13 +44,36 @@ export default function LoginPage() {
     if (!loginEmail.trim()) { setLoginError('Please enter your email.'); return }
     if (!loginPassword) { setLoginError('Please enter your password.'); return }
     setLoginLoading(true)
-    await new Promise((r) => setTimeout(r, 600))
-    const success = login(loginEmail.trim().toLowerCase(), loginPassword)
-    setLoginLoading(false)
-    if (success) {
-      router.push('/dashboard')
-    } else {
-      setLoginError('Email or password is incorrect. Please try again.')
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: loginEmail.trim(), password: loginPassword }),
+      })
+      const data = await res.json()
+
+      if (!res.ok) {
+        setLoginError(data.error || 'Login failed. Please try again.')
+      } else {
+        // Save user to context (localStorage fallback)
+        login(loginEmail.trim().toLowerCase(), loginPassword)
+        // Also save full profile from Supabase
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('vibeCoden_user', JSON.stringify(data.user))
+        }
+        router.push('/dashboard')
+      }
+    } catch (err) {
+      // Fallback to localStorage login if API fails
+      const success = login(loginEmail.trim().toLowerCase(), loginPassword)
+      if (success) {
+        router.push('/dashboard')
+      } else {
+        setLoginError('Email or password is incorrect. Please try again.')
+      }
+    } finally {
+      setLoginLoading(false)
     }
   }
 
@@ -70,21 +93,60 @@ export default function LoginPage() {
     if (!agreedToTerms) { setSignupError('Please agree to the Terms of Service.'); return }
 
     setSignupLoading(true)
-    await new Promise((r) => setTimeout(r, 800))
-    const success = signup({
-      fullName: fullName.trim(),
-      username: username.trim().toLowerCase(),
-      email: email.trim().toLowerCase(),
-      password,
-      age,
-      city: city.trim(),
-      state,
-    })
-    setSignupLoading(false)
-    if (success) {
+
+    try {
+      // Try Supabase signup via secure API route
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          password,
+          fullName: fullName.trim(),
+          username: username.trim().toLowerCase(),
+          age,
+          city: city.trim(),
+          state,
+        }),
+      })
+      const data = await res.json()
+
+      if (!res.ok) {
+        setSignupError(data.error || 'Signup failed. Please try again.')
+        setSignupLoading(false)
+        return
+      }
+
+      // Also save to localStorage as backup
+      signup({
+        fullName: fullName.trim(),
+        username: username.trim().toLowerCase(),
+        email: email.trim().toLowerCase(),
+        password,
+        age,
+        city: city.trim(),
+        state,
+      })
+
       router.push('/dashboard')
-    } else {
-      setSignupError('An account with this email already exists. Try logging in instead.')
+    } catch (err) {
+      // Fallback to localStorage if API unavailable
+      const success = signup({
+        fullName: fullName.trim(),
+        username: username.trim().toLowerCase(),
+        email: email.trim().toLowerCase(),
+        password,
+        age,
+        city: city.trim(),
+        state,
+      })
+      if (success) {
+        router.push('/dashboard')
+      } else {
+        setSignupError('An account with this email already exists. Try logging in instead.')
+      }
+    } finally {
+      setSignupLoading(false)
     }
   }
 
@@ -109,20 +171,12 @@ export default function LoginPage() {
 
         {/* Toggle */}
         <div className="card p-1 flex rounded-sm">
-          <button
-            onClick={() => { setMode('login'); setLoginError('') }}
-            className={`flex-1 py-3 rounded-sm font-chakra font-bold text-sm uppercase transition-all ${
-              mode === 'login' ? 'bg-orange-primary text-ink' : 'text-lavender-muted hover:text-lavender'
-            }`}
-          >
+          <button onClick={() => { setMode('login'); setLoginError('') }}
+            className={`flex-1 py-3 rounded-sm font-chakra font-bold text-sm uppercase transition-all ${mode === 'login' ? 'bg-orange-primary text-ink' : 'text-lavender-muted hover:text-lavender'}`}>
             Log In
           </button>
-          <button
-            onClick={() => { setMode('signup'); setSignupError('') }}
-            className={`flex-1 py-3 rounded-sm font-chakra font-bold text-sm uppercase transition-all ${
-              mode === 'signup' ? 'bg-orange-primary text-ink' : 'text-lavender-muted hover:text-lavender'
-            }`}
-          >
+          <button onClick={() => { setMode('signup'); setSignupError('') }}
+            className={`flex-1 py-3 rounded-sm font-chakra font-bold text-sm uppercase transition-all ${mode === 'signup' ? 'bg-orange-primary text-ink' : 'text-lavender-muted hover:text-lavender'}`}>
             Sign Up
           </button>
         </div>
@@ -137,8 +191,7 @@ export default function LoginPage() {
 
             <div className="space-y-2">
               <label className="font-mono text-xs text-lavender-dim uppercase tracking-widest">Email</label>
-              <input
-                type="email" placeholder="you@example.com" value={loginEmail}
+              <input type="email" placeholder="you@example.com" value={loginEmail}
                 onChange={(e) => { setLoginEmail(e.target.value); setLoginError('') }}
                 onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                 className="w-full bg-panel-deep border border-violet-border rounded-sm px-4 py-3 text-lavender font-grotesk text-sm outline-none focus:border-violet-accent transition-colors placeholder-lavender-dim"
@@ -148,9 +201,7 @@ export default function LoginPage() {
             <div className="space-y-2">
               <label className="font-mono text-xs text-lavender-dim uppercase tracking-widest">Password</label>
               <div className="relative">
-                <input
-                  type={showLoginPassword ? 'text' : 'password'}
-                  placeholder="Your password" value={loginPassword}
+                <input type={showLoginPassword ? 'text' : 'password'} placeholder="Your password" value={loginPassword}
                   onChange={(e) => { setLoginPassword(e.target.value); setLoginError('') }}
                   onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
                   className="w-full bg-panel-deep border border-violet-border rounded-sm px-4 py-3 pr-16 text-lavender font-grotesk text-sm outline-none focus:border-violet-accent transition-colors placeholder-lavender-dim"
@@ -162,9 +213,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {loginError && (
-              <p className="text-red-400 font-mono text-xs bg-red-500/10 border border-red-500/30 rounded p-3">⚠ {loginError}</p>
-            )}
+            {loginError && <p className="text-red-400 font-mono text-xs bg-red-500/10 border border-red-500/30 rounded p-3">⚠ {loginError}</p>}
 
             <button onClick={handleLogin} disabled={loginLoading}
               className="w-full px-6 py-4 rounded-sm bg-orange-primary text-ink font-chakra font-bold text-sm uppercase transition-all hover:shadow-orange-glow-hover hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed">
@@ -173,9 +222,7 @@ export default function LoginPage() {
 
             <p className="text-center text-sm text-lavender-dim">
               Don't have an account?{' '}
-              <button onClick={() => setMode('signup')} className="text-orange-primary hover:text-orange-bright font-bold">
-                Sign up free
-              </button>
+              <button onClick={() => setMode('signup')} className="text-orange-primary hover:text-orange-bright font-bold">Sign up free</button>
             </p>
           </div>
         )}
@@ -288,30 +335,22 @@ export default function LoginPage() {
             {age && parseInt(age) < 18 && (
               <div className="bg-orange-primary/10 border border-orange-primary/30 rounded p-3">
                 <p className="font-mono text-xs text-orange-primary uppercase tracking-widest mb-1">⚠ Under 18 Notice</p>
-                <p className="text-xs text-lavender-muted">
-                  Students under 18 may require parental consent. We comply with COPPA guidelines.
-                </p>
+                <p className="text-xs text-lavender-muted">Students under 18 may require parental consent. We comply with COPPA guidelines.</p>
               </div>
             )}
 
             <div className="flex gap-3 items-start">
               <button onClick={() => setAgreedToTerms(!agreedToTerms)}
-                className={`w-5 h-5 mt-0.5 flex-shrink-0 rounded border flex items-center justify-center transition-all ${
-                  agreedToTerms ? 'bg-orange-primary border-orange-primary text-ink' : 'border-violet-border hover:border-violet-accent'
-                }`}>
+                className={`w-5 h-5 mt-0.5 flex-shrink-0 rounded border flex items-center justify-center transition-all ${agreedToTerms ? 'bg-orange-primary border-orange-primary text-ink' : 'border-violet-border hover:border-violet-accent'}`}>
                 {agreedToTerms && <span className="text-xs font-bold">✓</span>}
               </button>
               <p className="text-xs text-lavender-muted leading-relaxed">
-                I agree to the{' '}
-                <a href="#" className="text-orange-primary hover:text-orange-bright">Terms of Service</a>{' '}and{' '}
-                <a href="#" className="text-orange-primary hover:text-orange-bright">Privacy Policy</a>.
+                I agree to the <a href="#" className="text-orange-primary hover:text-orange-bright">Terms of Service</a> and <a href="#" className="text-orange-primary hover:text-orange-bright">Privacy Policy</a>.
                 I understand that Vibe Coden is a nonprofit educational platform.
               </p>
             </div>
 
-            {signupError && (
-              <p className="text-red-400 font-mono text-xs bg-red-500/10 border border-red-500/30 rounded p-3">⚠ {signupError}</p>
-            )}
+            {signupError && <p className="text-red-400 font-mono text-xs bg-red-500/10 border border-red-500/30 rounded p-3">⚠ {signupError}</p>}
 
             <button onClick={handleSignup} disabled={signupLoading}
               className="w-full px-6 py-4 rounded-sm bg-orange-primary text-ink font-chakra font-bold text-sm uppercase transition-all hover:shadow-orange-glow-hover hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed">
@@ -320,9 +359,7 @@ export default function LoginPage() {
 
             <p className="text-center text-sm text-lavender-dim">
               Already have an account?{' '}
-              <button onClick={() => setMode('login')} className="text-orange-primary hover:text-orange-bright font-bold">
-                Log in
-              </button>
+              <button onClick={() => setMode('login')} className="text-orange-primary hover:text-orange-bright font-bold">Log in</button>
             </p>
           </div>
         )}
