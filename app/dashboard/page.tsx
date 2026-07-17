@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Countdown } from '@/components/Countdown'
 import { useAppContext } from '@/app/context'
 
 export default function Dashboard() {
@@ -14,7 +13,6 @@ export default function Dashboard() {
   const currentXP = 1660
   const maxXP = 2000
   const xpProgress = (currentXP / maxXP) * 100
-  const eventEndDate = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000)
 
   // Submission form state
   const [showSubmitModal, setShowSubmitModal] = useState(false)
@@ -42,26 +40,16 @@ export default function Dashboard() {
     setError('')
   }
 
-  const staticBuilds = [
-    { id: 1, status: 'SHIPPED', title: 'Neon Pong Deluxe', category: 'Game', votes: 791, total: 892 },
-    { id: 2, status: 'SHIPPED', title: 'Weather Dashboard', category: 'App', votes: 245, total: 320 },
-    { id: 3, status: 'BUILDING', title: 'Todo List Pro', category: 'App', votes: 0, total: 0 },
-    { id: 4, status: 'SHIPPED', title: 'Memory Game', category: 'Game', votes: 156, total: 203 },
-  ]
-
-  // Merge static builds with user submitted projects
-  const allBuilds = [
-    ...projects.map((p) => ({
-      id: p.id,
-      status: 'SHIPPED',
-      title: p.title,
-      category: p.category,
-      votes: 0,
-      total: 0,
-      isNew: true,
-    })),
-    ...staticBuilds,
-  ]
+  // Only show real submitted projects
+  const allBuilds = projects.map((p) => ({
+    id: p.id,
+    status: 'SHIPPED',
+    title: p.title,
+    category: p.category,
+    votes: 0,
+    total: 0,
+    isNew: true,
+  }))
 
   const lessons = [
     { id: 1, title: 'Getting Started with AI', done: true, current: false },
@@ -149,10 +137,10 @@ export default function Dashboard() {
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { label: 'Projects Shipped', value: String(9 + projects.length) },
-              { label: 'Total Votes', value: '1,204' },
-              { label: 'Best Rank', value: '#2' },
-              { label: 'Vibe-a-thons', value: '6' },
+              { label: 'Projects Shipped', value: String(projects.length) },
+              { label: 'Total Votes', value: '0' },
+              { label: 'Best Rank', value: '--' },
+              { label: 'Vibe-a-thons', value: '0' },
             ].map((stat, i) => (
               <div key={i} className="card p-6 text-center">
                 <p className="font-mono text-xs text-lavender-dim uppercase tracking-widest mb-3">{stat.label}</p>
@@ -163,48 +151,72 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* Live Entry */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-16">
-        <div className="card bg-gradient-hero p-8 sm:p-12 space-y-6 border border-orange-border">
-          <div className="flex items-center gap-3">
-            <span className="w-3 h-3 bg-orange-primary rounded-full animate-live-pulse" />
-            <span className="font-chakra font-bold text-orange-primary uppercase tracking-widest">● YOUR LIVE ENTRY</span>
-          </div>
-          <div className="grid lg:grid-cols-2 gap-8">
-            <div>
-              <h2 className="text-3xl sm:text-4xl font-chakra font-bold text-white mb-4">Neon Pong Deluxe</h2>
-              <div className="space-y-3">
-                <div>
-                  <p className="font-mono text-xs text-lavender-dim uppercase mb-1">Competition</p>
-                  <p className="text-lg font-chakra font-bold text-white">Make People Laugh Arena</p>
+      {/* Live Entry — only show if user has submitted a project */}
+      {projects.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-16">
+          <div className="card bg-gradient-hero p-8 sm:p-12 space-y-6 border border-orange-border">
+            <div className="flex items-center gap-3">
+              <span className="w-3 h-3 bg-orange-primary rounded-full animate-live-pulse" />
+              <span className="font-chakra font-bold text-orange-primary uppercase tracking-widest">● YOUR LATEST SUBMISSION</span>
+            </div>
+            <div className="grid lg:grid-cols-2 gap-8">
+              <div>
+                <h2 className="text-3xl sm:text-4xl font-chakra font-bold text-white mb-4">{projects[0].title}</h2>
+                <div className="space-y-3">
+                  <div>
+                    <p className="font-mono text-xs text-lavender-dim uppercase mb-1">Category</p>
+                    <p className="text-lg font-chakra font-bold text-white">{projects[0].category}</p>
+                  </div>
+                  <div>
+                    <p className="font-mono text-xs text-lavender-dim uppercase mb-1">Submitted by</p>
+                    <p className="text-lg font-chakra font-bold text-white">{projects[0].handle}</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="font-mono text-xs text-lavender-dim uppercase mb-1">Time remaining</p>
-                  <p className="text-lg font-chakra font-bold text-white">
-                    <Countdown targetDate={eventEndDate} format="HMs" />
-                  </p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-panel-deep/50 rounded p-4 border border-violet-border/30">
+                  <p className="font-mono text-xs text-lavender-dim mb-2">VOTES</p>
+                  <p className="text-3xl font-chakra font-bold text-orange-primary">0</p>
                 </div>
+                <div className="bg-panel-deep/50 rounded p-4 border border-violet-border/30">
+                  <p className="font-mono text-xs text-lavender-dim mb-2">STATUS</p>
+                  <p className="text-3xl font-chakra font-bold text-success-green">LIVE</p>
+                </div>
+                <Link
+                  href="/vibe-a-thons"
+                  className="lg:col-span-2 px-6 py-3 rounded-sm bg-orange-primary text-ink font-chakra font-bold text-sm uppercase transition-all hover:shadow-orange-glow-hover hover:-translate-y-0.5 text-center"
+                >
+                  VIEW ON LEADERBOARD →
+                </Link>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-panel-deep/50 rounded p-4 border border-violet-border/30">
-                <p className="font-mono text-xs text-lavender-dim mb-2">CURRENT RANK</p>
-                <p className="text-3xl font-chakra font-bold text-white">#2</p>
-              </div>
-              <div className="bg-panel-deep/50 rounded p-4 border border-violet-border/30">
-                <p className="font-mono text-xs text-lavender-dim mb-2">VOTES</p>
-                <p className="text-3xl font-chakra font-bold text-orange-primary">791</p>
-              </div>
-              <Link
-                href="/vibe-a-thons"
-                className="lg:col-span-2 px-6 py-3 rounded-sm bg-orange-primary text-ink font-chakra font-bold text-sm uppercase transition-all hover:shadow-orange-glow-hover hover:-translate-y-0.5 text-center"
-              >
-                VIEW ARENA →
+          </div>
+        </section>
+      )}
+
+      {/* No submissions yet CTA */}
+      {projects.length === 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-16">
+          <div className="card bg-gradient-hero p-8 sm:p-12 text-center space-y-6 border border-violet-border">
+            <div className="text-5xl">🚀</div>
+            <h2 className="text-2xl sm:text-3xl font-chakra font-bold text-white">Ready to compete?</h2>
+            <p className="text-lavender-muted max-w-lg mx-auto">
+              Submit your first build to the vibe-a-thon leaderboard. Build something, describe it, and let the community vote.
+            </p>
+            <div className="flex gap-4 justify-center flex-wrap">
+              <Link href="/learn/lesson-1"
+                className="px-6 py-3 rounded-sm border border-violet-accent text-lavender-muted font-chakra font-bold text-sm uppercase transition-all hover:bg-surface-violet">
+                TAKE A LESSON FIRST →
               </Link>
+              <button
+                onClick={() => setShowSubmitModal(true)}
+                className="px-6 py-3 rounded-sm bg-orange-primary text-ink font-chakra font-bold text-sm uppercase transition-all hover:shadow-orange-glow-hover hover:-translate-y-0.5">
+                SUBMIT YOUR FIRST BUILD →
+              </button>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Your Builds */}
       <section className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-16">
