@@ -161,7 +161,7 @@ export default function Home() {
           </div>
 
           <Link
-            href="/vibe-a-thons"
+            href="/vibe-a-thons#three-steps"
             className="inline-block px-6 py-3 rounded-sm bg-orange-primary text-ink font-chakra font-bold text-sm uppercase transition-all hover:shadow-orange-glow-hover hover:-translate-y-0.5"
           >
             ENTER THE ARENA →
