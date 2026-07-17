@@ -52,7 +52,7 @@ export interface AppContextType {
   // Votes
   votes: Record<string, number>
   userVotes: Set<string>
-  voteOnBuild: (buildId: string, userId: string) => boolean
+  voteOnBuild: (buildId: string) => boolean
   userIdentifier: string
   // Projects
   projects: Project[]
@@ -92,10 +92,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       const savedUser = localStorage.getItem('vibeCoden_user')
       if (savedUser) setUser(JSON.parse(savedUser))
+
+      const savedVotes = localStorage.getItem('vibeCoden_votes')
+      if (savedVotes) setVotes(JSON.parse(savedVotes))
+
+      const savedUserVotes = localStorage.getItem('vibeCoden_userVotes')
+      if (savedUserVotes) setUserVotes(new Set(JSON.parse(savedUserVotes)))
     } catch (e) {
       console.error('Failed to load saved data:', e)
     }
   }, [])
+
+  // Persist votes
+  useEffect(() => {
+    if (typeof window !== 'undefined')
+      localStorage.setItem('vibeCoden_votes', JSON.stringify(votes))
+  }, [votes])
+
+  // Persist userVotes (as array since Set isn't JSON-serializable)
+  useEffect(() => {
+    if (typeof window !== 'undefined')
+      localStorage.setItem('vibeCoden_userVotes', JSON.stringify(Array.from(userVotes)))
+  }, [userVotes])
 
   // Persist cart
   useEffect(() => {
@@ -247,11 +265,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
   // --- Votes ---
-  const voteOnBuild = (buildId: string, userId: string): boolean => {
-    const voteKey = `${buildId}_${userId}`
+  const voteOnBuild = (buildId: string): boolean => {
+    if (!user) return false
+    const voteKey = `${buildId}_${user.email}`
     if (userVotes.has(voteKey)) return false
+
     setVotes((prev) => ({ ...prev, [buildId]: (prev[buildId] || 0) + 1 }))
     setUserVotes((prev) => new Set([...prev, voteKey]))
+
+    // Small XP reward for engaging with the community
+    awardXP(5)
+
+    // Sync to Supabase in the background (only works for real submitted projects with a valid id)
+    if (user.id) {
+      fetch('/api/votes/cast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, projectId: buildId }),
+      }).catch(() => console.log('Vote sync failed'))
+    }
+
     return true
   }
 
@@ -273,6 +306,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       },
       ...prev,
     ])
+
+    // Sync to Supabase in the background so admins can see and moderate it
+    if (user?.id) {
+      fetch('/api/projects/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user.id, title, description, category }),
+      }).catch(() => console.log('Project sync failed'))
+    }
   }
 
   return (
