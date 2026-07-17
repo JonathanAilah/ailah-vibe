@@ -28,6 +28,8 @@ export interface User {
   age: string
   city: string
   state: string
+  xp: number
+  level: number
 }
 
 export interface AppContextType {
@@ -38,6 +40,7 @@ export interface AppContextType {
   signup: (data: User & { password: string }) => boolean
   loginWithProfile: (userData: User, password: string) => void
   logout: () => void
+  awardXP: (amount: number) => void
   // Cart
   cart: CartItem[]
   addToCart: (id: string, name: string, price: number) => void
@@ -118,9 +121,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Save accounts list (keyed by email)
       const accounts = JSON.parse(localStorage.getItem('vibeCoden_accounts') || '{}')
       if (accounts[data.email]) return false // already exists
-      accounts[data.email] = { ...data }
+      const dataWithXP = { ...data, xp: 0, level: 1 }
+      accounts[data.email] = { ...dataWithXP }
       localStorage.setItem('vibeCoden_accounts', JSON.stringify(accounts))
-      const { password: _p, ...userOnly } = data
+      const { password: _p, ...userOnly } = dataWithXP
 
       // Sync to Supabase in background
       fetch('/api/auth/signup', {
@@ -152,12 +156,43 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const loginWithProfile = (userData: User, password: string) => {
     try {
       const accounts = JSON.parse(localStorage.getItem('vibeCoden_accounts') || '{}')
-      accounts[userData.email] = { ...userData, password }
+      // Preserve existing XP/level if this account already has some saved locally
+      const existing = accounts[userData.email]
+      const merged = {
+        ...userData,
+        xp: existing?.xp ?? userData.xp ?? 0,
+        level: existing?.level ?? userData.level ?? 1,
+        password,
+      }
+      accounts[userData.email] = merged
       localStorage.setItem('vibeCoden_accounts', JSON.stringify(accounts))
+      const { password: _p, ...userOnly } = merged
+      setUser(userOnly)
+      return
     } catch {
       // ignore
     }
     setUser(userData)
+  }
+
+  const awardXP = (amount: number) => {
+    setUser((prev) => {
+      if (!prev) return prev
+      const newXP = (prev.xp || 0) + amount
+      const newLevel = Math.floor(newXP / 500) + 1
+      const updated = { ...prev, xp: newXP, level: newLevel }
+      // Persist to accounts store too
+      try {
+        const accounts = JSON.parse(localStorage.getItem('vibeCoden_accounts') || '{}')
+        if (accounts[prev.email]) {
+          accounts[prev.email] = { ...accounts[prev.email], xp: newXP, level: newLevel }
+          localStorage.setItem('vibeCoden_accounts', JSON.stringify(accounts))
+        }
+      } catch {
+        // ignore
+      }
+      return updated
+    })
   }
 
   const logout = () => setUser(null)
@@ -208,7 +243,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   return (
     <AppContext.Provider value={{
-      user, isLoggedIn: !!user, login, signup, loginWithProfile, logout,
+      user, isLoggedIn: !!user, login, signup, loginWithProfile, logout, awardXP,
       cart, addToCart, removeFromCart, clearCart, cartTotal,
       votes, userVotes, voteOnBuild, userIdentifier,
       projects, submitProject,
