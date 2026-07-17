@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { VibeAgent } from '@/components/VibeAgent'
+import { useAppContext } from '@/app/context'
 
 const quizQuestions = [
   {
@@ -56,6 +57,7 @@ const quizQuestions = [
 ]
 
 export default function Lesson5() {
+  const { awardXP } = useAppContext()
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
   const [showExplanation, setShowExplanation] = useState(false)
@@ -78,6 +80,7 @@ export default function Lesson5() {
     if (currentQuestion + 1 >= quizQuestions.length) {
       setQuizComplete(true)
       setCourseComplete(true)
+      awardXP(score * 30 + 100) // quiz XP + course completion bonus
     } else {
       setCurrentQuestion((q) => q + 1)
       setSelectedAnswer(null)
