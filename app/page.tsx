@@ -22,7 +22,7 @@ export default function Home() {
             Vibe Coden teaches non-technical teens to describe what they want, let AI build it, and ship real apps,
             games, and websites. Then compete in vibe-a-thons for cash prizes.
           </p>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-4">
             <Link
               href="/learn/lesson-1"
               className="px-6 py-3 rounded-sm bg-orange-primary text-ink font-chakra font-bold text-sm uppercase transition-all hover:shadow-orange-glow-hover hover:-translate-y-0.5"
@@ -35,6 +35,12 @@ export default function Home() {
             >
               LEARN MORE ↓
             </a>
+            <Link
+              href="/fund-a-scholarship"
+              className="px-6 py-3 rounded-sm border border-orange-primary text-orange-primary font-chakra font-bold text-sm uppercase transition-all hover:bg-orange-primary/10 hover:-translate-y-0.5 text-center"
+            >
+              ♥ DONATE
+            </Link>
           </div>
         </div>
       </section>
