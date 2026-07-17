@@ -22,6 +22,7 @@ export interface Project {
 }
 
 export interface User {
+  id?: string
   fullName: string
   username: string
   email: string
@@ -41,6 +42,7 @@ export interface AppContextType {
   loginWithProfile: (userData: User, password: string) => void
   logout: () => void
   awardXP: (amount: number) => void
+  setUserId: (email: string, id: string) => void
   // Cart
   cart: CartItem[]
   addToCart: (id: string, name: string, price: number) => void
@@ -156,23 +158,47 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const loginWithProfile = (userData: User, password: string) => {
     try {
       const accounts = JSON.parse(localStorage.getItem('vibeCoden_accounts') || '{}')
-      // Preserve existing XP/level if this account already has some saved locally
       const existing = accounts[userData.email]
+      // Take the higher of local-cached XP vs Supabase-stored XP so nothing is ever lost
+      const bestXP = Math.max(existing?.xp ?? 0, userData.xp ?? 0)
+      const bestLevel = Math.floor(bestXP / 500) + 1
       const merged = {
         ...userData,
-        xp: existing?.xp ?? userData.xp ?? 0,
-        level: existing?.level ?? userData.level ?? 1,
+        xp: bestXP,
+        level: bestLevel,
         password,
       }
       accounts[userData.email] = merged
       localStorage.setItem('vibeCoden_accounts', JSON.stringify(accounts))
       const { password: _p, ...userOnly } = merged
       setUser(userOnly)
+
+      // If local was ahead of Supabase, push the higher value back up
+      if (bestXP > (userData.xp ?? 0) && userData.id) {
+        fetch('/api/user/xp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: userData.id, xp: bestXP, level: bestLevel }),
+        }).catch(() => console.log('XP sync failed'))
+      }
       return
     } catch {
       // ignore
     }
     setUser(userData)
+  }
+
+  const setUserId = (email: string, id: string) => {
+    setUser((prev) => (prev && prev.email === email ? { ...prev, id } : prev))
+    try {
+      const accounts = JSON.parse(localStorage.getItem('vibeCoden_accounts') || '{}')
+      if (accounts[email]) {
+        accounts[email] = { ...accounts[email], id }
+        localStorage.setItem('vibeCoden_accounts', JSON.stringify(accounts))
+      }
+    } catch {
+      // ignore
+    }
   }
 
   const awardXP = (amount: number) => {
@@ -190,6 +216,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         }
       } catch {
         // ignore
+      }
+      // Sync to Supabase in the background so XP persists across devices/browsers
+      if (prev.id) {
+        fetch('/api/user/xp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: prev.id, xp: newXP, level: newLevel }),
+        }).catch(() => console.log('XP sync failed'))
       }
       return updated
     })
@@ -243,7 +277,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   return (
     <AppContext.Provider value={{
-      user, isLoggedIn: !!user, login, signup, loginWithProfile, logout, awardXP,
+      user, isLoggedIn: !!user, login, signup, loginWithProfile, logout, awardXP, setUserId,
       cart, addToCart, removeFromCart, clearCart, cartTotal,
       votes, userVotes, voteOnBuild, userIdentifier,
       projects, submitProject,
