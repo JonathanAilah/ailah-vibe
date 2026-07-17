@@ -1,12 +1,63 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { TerminalWindow } from '@/components/TerminalWindow'
 import { Leaderboard } from '@/components/Leaderboard'
 import { Countdown } from '@/components/Countdown'
 
+interface VibeAThon {
+  id: string
+  theme: string
+  description: string
+  start_date: string
+  end_date: string
+  first_prize: number
+  second_prize: number
+  third_prize: number
+  status: 'upcoming' | 'live' | 'ended'
+}
+
+interface Winner {
+  id: string
+  title: string
+  category: string
+  username: string
+  voteCount: number
+}
+
 export default function VibeatThons() {
-  const eventEndDate = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) // 3 days from now
+  const [current, setCurrent] = useState<VibeAThon | null>(null)
+  const [upcomingList, setUpcomingList] = useState<VibeAThon[]>([])
+  const [winners, setWinners] = useState<Winner[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/vibe-a-thons/current')
+      .then((r) => r.json())
+      .then((data) => setCurrent(data.vibeAThon || null))
+      .catch(() => setCurrent(null))
+      .finally(() => setLoading(false))
+
+    fetch('/api/vibe-a-thons/list')
+      .then((r) => r.json())
+      .then((data) => {
+        const all: VibeAThon[] = data.vibeAThons || []
+        setUpcomingList(all.filter((v) => v.status === 'upcoming'))
+      })
+      .catch(() => setUpcomingList([]))
+  }, [])
+
+  useEffect(() => {
+    if (current?.status === 'ended') {
+      fetch(`/api/vibe-a-thons/${current.id}/winners`)
+        .then((r) => r.json())
+        .then((data) => setWinners(data.winners || []))
+        .catch(() => setWinners([]))
+    }
+  }, [current])
+
+  const medalColors = ['text-orange-primary', 'text-lavender', 'text-orange-bright']
 
   return (
     <div className="space-y-24">
@@ -46,7 +97,6 @@ export default function VibeatThons() {
             <div className="absolute inset-0 bg-gradient-hero blur-3xl opacity-20 -z-10" />
             <TerminalWindow />
 
-            {/* Floating chips */}
             <div className="absolute -top-4 -right-8 animate-floaty">
               <div className="bg-panel-raised border border-violet-border rounded-full px-4 py-2 font-mono text-xs text-lavender-muted">
                 {'</> APPS'}
@@ -72,24 +122,9 @@ export default function VibeatThons() {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           {[
-            {
-              num: '01',
-              title: 'Describe It',
-              desc: 'Tell AI what you want to build',
-              code: 'vibe build.ai "make a pong game"',
-            },
-            {
-              num: '02',
-              title: 'AI Builds It',
-              desc: 'AI generates working code',
-              code: '→ generating code...\n✓ build ready',
-            },
-            {
-              num: '03',
-              title: 'You Ship It',
-              desc: 'Deploy with one click',
-              code: 'npm run deploy\n✓ shipped! 🚀',
-            },
+            { num: '01', title: 'Describe It', desc: 'Tell AI what you want to build', code: 'vibe build.ai "make a pong game"' },
+            { num: '02', title: 'AI Builds It', desc: 'AI generates working code', code: '→ generating code...\n✓ build ready' },
+            { num: '03', title: 'You Ship It', desc: 'Deploy with one click', code: 'npm run deploy\n✓ shipped! 🚀' },
           ].map((step, i) => (
             <div key={i} className="card p-8 space-y-4">
               <div className="text-4xl font-chakra font-bold text-orange-primary">{step.num}</div>
@@ -129,46 +164,106 @@ export default function VibeatThons() {
 
       {/* Live Event Band */}
       <section id="arena-live" className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-16">
-        <div className="card bg-gradient-hero p-8 sm:p-12 space-y-6 border border-orange-border">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="inline-block w-3 h-3 bg-orange-primary rounded-full animate-glow-pulse" />
-            <span className="font-chakra font-bold text-orange-primary uppercase tracking-widest">
-              LIVE NOW · VOTING OPEN
-            </span>
+        {loading ? (
+          <div className="card p-12 text-center">
+            <p className="text-lavender-muted font-mono text-sm">Loading current event...</p>
           </div>
-
-          <div className="grid lg:grid-cols-2 gap-8">
-            <div>
-              <h2 className="text-3xl sm:text-4xl font-chakra font-bold text-white mb-4">
-                Make people laugh.
-              </h2>
-              <p className="text-base text-lavender-muted mb-6">
-                Build a game, app, or website that makes people laugh. Solo builds. Community voted. 3 winners.
-              </p>
+        ) : !current ? (
+          <div className="card bg-gradient-hero p-8 sm:p-12 text-center space-y-4 border border-violet-border">
+            <div className="text-5xl">🗓️</div>
+            <h2 className="text-2xl sm:text-3xl font-chakra font-bold text-white">No vibe-a-thon scheduled right now</h2>
+            <p className="text-lavender-muted">Check back soon — new competitions are announced regularly.</p>
+          </div>
+        ) : current.status === 'live' ? (
+          <div className="card bg-gradient-hero p-8 sm:p-12 space-y-6 border border-orange-border">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="inline-block w-3 h-3 bg-orange-primary rounded-full animate-glow-pulse" />
+              <span className="font-chakra font-bold text-orange-primary uppercase tracking-widest">
+                LIVE NOW · VOTING OPEN
+              </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-panel-deep/50 rounded p-4 border border-violet-border/30 overflow-hidden">
-                <p className="font-mono text-xs text-lavender-dim mb-2">ENDS IN</p>
-                <p className="text-lg font-chakra font-bold text-white truncate">
-                  <Countdown targetDate={eventEndDate} format="HMs" />
-                </p>
+            <div className="grid lg:grid-cols-2 gap-8">
+              <div>
+                <h2 className="text-3xl sm:text-4xl font-chakra font-bold text-white mb-4">{current.theme}</h2>
+                <p className="text-base text-lavender-muted mb-6">{current.description}</p>
               </div>
-              <div className="bg-panel-deep/50 rounded p-4 border border-violet-border/30 overflow-hidden">
-                <p className="font-mono text-xs text-lavender-dim mb-2">PRIZE POOL</p>
-                <p className="text-lg font-chakra font-bold text-white">$2,500</p>
-              </div>
-              <div className="bg-panel-deep/50 rounded p-4 border border-violet-border/30 overflow-hidden">
-                <p className="font-mono text-xs text-lavender-dim mb-2">ENTRANTS</p>
-                <p className="text-lg font-chakra font-bold text-white">47</p>
-              </div>
-              <div className="bg-panel-deep/50 rounded p-4 border border-violet-border/30 overflow-hidden">
-                <p className="font-mono text-xs text-lavender-dim mb-2">1ST PLACE</p>
-                <p className="text-lg font-chakra font-bold text-orange-primary">$1,500</p>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-panel-deep/50 rounded p-4 border border-violet-border/30 overflow-hidden">
+                  <p className="font-mono text-xs text-lavender-dim mb-2">ENDS IN</p>
+                  <p className="text-lg font-chakra font-bold text-white truncate">
+                    <Countdown targetDate={new Date(current.end_date)} format="HMs" />
+                  </p>
+                </div>
+                <div className="bg-panel-deep/50 rounded p-4 border border-violet-border/30 overflow-hidden">
+                  <p className="font-mono text-xs text-lavender-dim mb-2">PRIZE POOL</p>
+                  <p className="text-lg font-chakra font-bold text-white">
+                    ${(current.first_prize + current.second_prize + current.third_prize).toLocaleString()}
+                  </p>
+                </div>
+                <div className="bg-panel-deep/50 rounded p-4 border border-violet-border/30 overflow-hidden">
+                  <p className="font-mono text-xs text-lavender-dim mb-2">1ST PLACE</p>
+                  <p className="text-lg font-chakra font-bold text-orange-primary">${current.first_prize.toLocaleString()}</p>
+                </div>
+                <div className="bg-panel-deep/50 rounded p-4 border border-violet-border/30 overflow-hidden">
+                  <p className="font-mono text-xs text-lavender-dim mb-2">2ND / 3RD</p>
+                  <p className="text-lg font-chakra font-bold text-white">${current.second_prize} / ${current.third_prize}</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        ) : current.status === 'upcoming' ? (
+          <div className="card bg-gradient-hero p-8 sm:p-12 space-y-6 border border-violet-border">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="inline-block w-3 h-3 bg-violet-accent rounded-full animate-glow-pulse" />
+              <span className="font-chakra font-bold text-violet-accent uppercase tracking-widest">STARTING SOON</span>
+            </div>
+            <div className="grid lg:grid-cols-2 gap-8">
+              <div>
+                <h2 className="text-3xl sm:text-4xl font-chakra font-bold text-white mb-4">{current.theme}</h2>
+                <p className="text-base text-lavender-muted mb-6">{current.description}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-panel-deep/50 rounded p-4 border border-violet-border/30 overflow-hidden">
+                  <p className="font-mono text-xs text-lavender-dim mb-2">STARTS IN</p>
+                  <p className="text-lg font-chakra font-bold text-white truncate">
+                    <Countdown targetDate={new Date(current.start_date)} format="DHms" />
+                  </p>
+                </div>
+                <div className="bg-panel-deep/50 rounded p-4 border border-violet-border/30 overflow-hidden">
+                  <p className="font-mono text-xs text-lavender-dim mb-2">PRIZE POOL</p>
+                  <p className="text-lg font-chakra font-bold text-white">
+                    ${(current.first_prize + current.second_prize + current.third_prize).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="card bg-gradient-hero p-8 sm:p-12 space-y-6 border border-violet-border">
+            <div className="flex items-center gap-3 mb-4">
+              <span className="font-chakra font-bold text-lavender-dim uppercase tracking-widest">● EVENT ENDED</span>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-chakra font-bold text-white mb-2">{current.theme}</h2>
+            <p className="text-base text-lavender-muted mb-6">{current.description}</p>
+
+            {winners.length > 0 ? (
+              <div className="grid sm:grid-cols-3 gap-4">
+                {winners.map((w, i) => (
+                  <div key={w.id} className="bg-panel-deep/50 rounded p-6 border border-violet-border/30 text-center space-y-2">
+                    <div className="text-3xl">{i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉'}</div>
+                    <p className={`font-chakra font-bold ${medalColors[i]}`}>{w.title}</p>
+                    <p className="text-xs text-lavender-dim font-mono">@{w.username}</p>
+                    <p className="text-sm text-lavender-muted">{w.voteCount} votes</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-lavender-dim font-mono text-sm">No submissions were recorded for this event.</p>
+            )}
+          </div>
+        )}
       </section>
 
       {/* Leaderboard Section */}
@@ -192,38 +287,43 @@ export default function VibeatThons() {
 
             <div className="card p-6 space-y-4">
               <h3 className="eyebrow">// PRIZES</h3>
-              <div className="space-y-3">
-                <div>
-                  <div className="text-orange-primary font-chakra font-bold">1st Place</div>
-                  <p className="text-sm text-lavender-muted">$1,500 + featured</p>
+              {current ? (
+                <div className="space-y-3">
+                  <div>
+                    <div className="text-orange-primary font-chakra font-bold">1st Place</div>
+                    <p className="text-sm text-lavender-muted">${current.first_prize.toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <div className="text-lavender font-chakra font-bold">2nd Place</div>
+                    <p className="text-sm text-lavender-muted">${current.second_prize.toLocaleString()}</p>
+                  </div>
+                  <div>
+                    <div className="text-orange-bright font-chakra font-bold">3rd Place</div>
+                    <p className="text-sm text-lavender-muted">${current.third_prize.toLocaleString()}</p>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-lavender font-chakra font-bold">2nd Place</div>
-                  <p className="text-sm text-lavender-muted">$700</p>
-                </div>
-                <div>
-                  <div className="text-orange-bright font-chakra font-bold">3rd Place</div>
-                  <p className="text-sm text-lavender-muted">$300</p>
-                </div>
-              </div>
+              ) : (
+                <p className="text-sm text-lavender-dim font-mono">No active event</p>
+              )}
             </div>
 
             <div className="card p-6 space-y-4">
               <h3 className="eyebrow">// UPCOMING</h3>
-              <div className="space-y-3 text-sm">
-                <div className="border-l-2 border-orange-primary pl-3">
-                  <div className="font-chakra font-bold text-white">Weekend Warriors</div>
-                  <div className="text-lavender-dim">Jan 15</div>
+              {upcomingList.length > 0 ? (
+                <div className="space-y-3 text-sm">
+                  {upcomingList.slice(0, 3).map((v, i) => {
+                    const colors = ['border-orange-primary', 'border-violet-accent', 'border-success-green']
+                    return (
+                      <div key={v.id} className={`border-l-2 ${colors[i % 3]} pl-3`}>
+                        <div className="font-chakra font-bold text-white">{v.theme}</div>
+                        <div className="text-lavender-dim">{new Date(v.start_date).toLocaleDateString()}</div>
+                      </div>
+                    )
+                  })}
                 </div>
-                <div className="border-l-2 border-violet-accent pl-3">
-                  <div className="font-chakra font-bold text-white">AI Challenge</div>
-                  <div className="text-lavender-dim">Jan 22</div>
-                </div>
-                <div className="border-l-2 border-success-green pl-3">
-                  <div className="font-chakra font-bold text-white">Build-a-Thon</div>
-                  <div className="text-lavender-dim">Jan 29</div>
-                </div>
-              </div>
+              ) : (
+                <p className="text-sm text-lavender-dim font-mono">No upcoming events scheduled yet</p>
+              )}
             </div>
           </div>
         </div>
