@@ -56,6 +56,9 @@ export default function AdminDashboard() {
           <h1 className="text-3xl sm:text-4xl font-chakra font-bold text-white">Overview</h1>
         </div>
         <div className="flex gap-3">
+          <Link href="/admin/vibe-a-thons" className="px-5 py-2.5 rounded-sm border border-violet-accent text-lavender-muted font-chakra font-bold text-sm uppercase transition-all hover:bg-surface-violet">
+            VIBE-A-THONS
+          </Link>
           <Link href="/admin/users" className="px-5 py-2.5 rounded-sm border border-violet-accent text-lavender-muted font-chakra font-bold text-sm uppercase transition-all hover:bg-surface-violet">
             USERS
           </Link>
@@ -113,7 +116,11 @@ export default function AdminDashboard() {
           </div>
 
           {/* Quick links */}
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid sm:grid-cols-3 gap-4">
+            <Link href="/admin/vibe-a-thons" className="card p-6 space-y-2 hover:border-violet-accent transition-all group">
+              <p className="font-chakra font-bold text-white group-hover:text-orange-primary transition-colors">Manage Vibe-a-thons →</p>
+              <p className="text-sm text-lavender-muted">Create competitions, set themes, deadlines, and prizes.</p>
+            </Link>
             <Link href="/admin/users" className="card p-6 space-y-2 hover:border-violet-accent transition-all group">
               <p className="font-chakra font-bold text-white group-hover:text-orange-primary transition-colors">Manage Users →</p>
               <p className="text-sm text-lavender-muted">View all students, check their progress, or remove accounts.</p>
