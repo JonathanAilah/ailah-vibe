@@ -18,6 +18,7 @@ export interface Project {
   avatar: string
   submittedAt: string
   votes: number
+  liveUrl: string
 }
 
 export interface User {
@@ -49,7 +50,7 @@ export interface AppContextType {
   userIdentifier: string
   // Projects
   projects: Project[]
-  submitProject: (title: string, description: string, category: 'App' | 'Game' | 'Site') => void
+  submitProject: (title: string, description: string, category: 'App' | 'Game' | 'Site', liveUrl: string) => void
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined)
@@ -166,7 +167,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }
 
   // --- Projects ---
-  const submitProject = (title: string, description: string, category: 'App' | 'Game' | 'Site') => {
+  const submitProject = (title: string, description: string, category: 'App' | 'Game' | 'Site', liveUrl: string) => {
     const handle = user ? `@${user.username}` : '@you'
     const avatar = user ? user.fullName.charAt(0).toUpperCase() : 'Y'
     setProjects((prev) => [
@@ -179,6 +180,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         avatar,
         submittedAt: new Date().toISOString(),
         votes: 0,
+        liveUrl,
       },
       ...prev,
     ])
