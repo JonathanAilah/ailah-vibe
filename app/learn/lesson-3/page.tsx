@@ -57,7 +57,7 @@ const quizQuestions = [
 ]
 
 export default function Lesson3() {
-  const { awardXP } = useAppContext()
+  const { awardXP, isLoggedIn } = useAppContext()
   const [currentTab, setCurrentTab] = useState<'learn' | 'quiz'>('learn')
   const [currentQuestion, setCurrentQuestion] = useState(0)
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null)
@@ -126,7 +126,10 @@ export default function Lesson3() {
         {(['learn', 'quiz'] as const).map((tab) => (
           <button
             key={tab}
-            onClick={() => setCurrentTab(tab)}
+            onClick={() => {
+              if (tab === 'quiz' && !isLoggedIn) { window.location.href = '/login'; return }
+              setCurrentTab(tab)
+            }}
             className={`px-6 py-3 font-chakra font-bold text-sm uppercase transition-all border-b-2 ${
               currentTab === tab
                 ? 'text-orange-primary border-orange-primary'
@@ -302,13 +305,20 @@ export default function Lesson3() {
           </section>
 
           {/* Go to quiz */}
-          <div className="text-center">
-            <button
-              onClick={() => setCurrentTab('quiz')}
-              className="px-8 py-4 rounded-sm bg-orange-primary text-ink font-chakra font-bold text-sm uppercase transition-all hover:shadow-orange-glow-hover hover:-translate-y-0.5"
-            >
-              TAKE THE QUIZ →
-            </button>
+          <div className="text-center space-y-4">
+            {!isLoggedIn && (
+              <p className="text-xs font-mono text-orange-primary bg-orange-primary/10 border border-orange-primary/30 rounded p-3 inline-block">
+                📝 Create a free account to take this quiz and start earning XP
+              </p>
+            )}
+            <div>
+              <button
+                onClick={() => { if (!isLoggedIn) { window.location.href = '/login'; return } setCurrentTab('quiz') }}
+                className="px-8 py-4 rounded-sm bg-orange-primary text-ink font-chakra font-bold text-sm uppercase transition-all hover:shadow-orange-glow-hover hover:-translate-y-0.5"
+              >
+                {isLoggedIn ? "TAKE THE QUIZ →" : 'SIGN UP TO TAKE QUIZ →'}
+              </button>
+            </div>
           </div>
         </div>
       )}
