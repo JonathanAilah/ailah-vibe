@@ -14,7 +14,7 @@ const US_STATES = [
 
 export default function LoginPage() {
   const router = useRouter()
-  const { login, signup } = useAppContext()
+  const { login, signup, loginWithProfile } = useAppContext()
   const [mode, setMode] = useState<'login' | 'signup'>('login')
 
   // Login fields
@@ -44,7 +44,25 @@ export default function LoginPage() {
     if (!loginEmail.trim()) { setLoginError('Please enter your email.'); return }
     if (!loginPassword) { setLoginError('Please enter your password.'); return }
     setLoginLoading(true)
-    await new Promise((r) => setTimeout(r, 600))
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: loginEmail.trim(), password: loginPassword }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        loginWithProfile(data.user, loginPassword)
+        setLoginLoading(false)
+        router.push('/dashboard')
+        return
+      }
+    } catch (err) {
+      // network issue - fall through to localStorage check below
+    }
+
+    // Fallback to localStorage
     const success = login(loginEmail.trim().toLowerCase(), loginPassword)
     setLoginLoading(false)
     if (success) {
@@ -169,6 +187,11 @@ export default function LoginPage() {
                   {showLoginPassword ? 'HIDE' : 'SHOW'}
                 </button>
               </div>
+            </div>
+            <div className="flex justify-end -mt-2">
+              <Link href="/forgot-password" className="text-xs font-mono text-lavender-dim hover:text-orange-primary transition-colors">
+                Forgot password?
+              </Link>
             </div>
             {loginError && <p className="text-red-400 font-mono text-xs bg-red-500/10 border border-red-500/30 rounded p-3">⚠ {loginError}</p>}
             <button onClick={handleLogin} disabled={loginLoading}
