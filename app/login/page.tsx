@@ -70,9 +70,33 @@ export default function LoginPage() {
     if (!agreedToTerms) { setSignupError('Please agree to the Terms of Service.'); return }
 
     setSignupLoading(true)
-    await new Promise((r) => setTimeout(r, 600))
 
-    const success = signup({
+    try {
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          password,
+          fullName: fullName.trim(),
+          username: username.trim().toLowerCase(),
+          age,
+          city: city.trim(),
+          state,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setSignupError(data.error || 'Signup failed. Please try again.')
+        setSignupLoading(false)
+        return
+      }
+    } catch (err) {
+      console.log('Supabase unavailable, using localStorage')
+    }
+
+    // Always save to localStorage too
+    signup({
       fullName: fullName.trim(),
       username: username.trim().toLowerCase(),
       email: email.trim().toLowerCase(),
@@ -83,12 +107,7 @@ export default function LoginPage() {
     })
 
     setSignupLoading(false)
-
-    if (success) {
-      router.push('/dashboard')
-    } else {
-      setSignupError('An account with this email already exists. Try logging in instead.')
-    }
+    router.push('/dashboard')
   }
 
   return (
