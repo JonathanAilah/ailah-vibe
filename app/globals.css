@@ -1,0 +1,177 @@
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #0A0611;
+  color: #E7DEF8;
+  font-family: 'Space Grotesk', sans-serif;
+  overflow-x: hidden;
+}
+
+/* Global animated background */
+.global-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -10;
+  background: #0A0611;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.global-background::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(800px 600px at 100% 0%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+    radial-gradient(800px 600px at 0% 100%, rgba(255, 138, 33, 0.1) 0%, transparent 50%);
+}
+
+.global-background::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 43px,
+      rgba(139, 92, 246, 0.03) 43px,
+      rgba(139, 92, 246, 0.03) 44px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 43px,
+      rgba(139, 92, 246, 0.03) 43px,
+      rgba(139, 92, 246, 0.03) 44px
+    );
+  animation: gridmove 20s linear infinite;
+}
+
+/* Floating orbs */
+.floating-orb {
+  position: fixed;
+  border-radius: 50%;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  z-index: -9;
+}
+
+.floating-orb-orange {
+  width: 400px;
+  height: 400px;
+  top: -100px;
+  right: -100px;
+  background: radial-gradient(circle, rgba(255, 138, 33, 0.1) 0%, transparent 70%);
+  animation: floaty 15s ease-in-out infinite;
+}
+
+.floating-orb-violet {
+  width: 500px;
+  height: 500px;
+  bottom: -150px;
+  left: -150px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 70%);
+  animation: floaty2 18s ease-in-out infinite;
+}
+
+/* Typography defaults */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Chakra Petch', sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.5px;
+}
+
+.eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #8A7BB0;
+}
+
+.mono {
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 1px;
+}
+
+/* Buttons */
+.btn-primary {
+  @apply px-6 py-3 rounded-sm bg-orange-primary text-ink font-chakra font-bold text-sm uppercase transition-all duration-200;
+  box-shadow: 0 8px 26px rgba(255, 138, 33, 0.4);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 34px rgba(255, 138, 33, 0.55);
+}
+
+.btn-secondary {
+  @apply px-6 py-3 rounded-sm bg-lavender-muted text-purple-deep-2 font-chakra font-bold text-sm uppercase transition-all duration-200;
+}
+
+.btn-secondary:hover {
+  transform: translateY(-2px);
+  @apply bg-lavender;
+}
+
+.btn-ghost {
+  @apply px-6 py-3 rounded-sm border border-violet-accent text-lavender-muted font-chakra font-bold text-sm uppercase transition-all duration-200;
+}
+
+.btn-ghost:hover {
+  transform: translateY(-2px);
+  @apply bg-surface-violet border-violet-accent;
+}
+
+/* Cards */
+.card {
+  @apply bg-gradient-card rounded-lg border border-violet-border;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+}
+
+/* Text utilities */
+.text-orange {
+  color: #FF8A21;
+}
+
+.text-success {
+  color: #7EE0A8;
+}
+
+/* Scroll bar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3A2A5C;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #8B5CF6;
+}
