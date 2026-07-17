@@ -122,6 +122,8 @@ export default function LoginPage() {
       age,
       city: city.trim(),
       state,
+      xp: 0,
+      level: 1,
     })
 
     setSignupLoading(false)
