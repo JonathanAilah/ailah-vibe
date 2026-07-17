@@ -496,5 +496,11 @@ export default function Lesson1() {
 
       <div className="h-8" />
     </div>
+  ) <div className="h-8" />
+
+      {/* Vibe AI Agent */}
+      <VibeAgent context="lesson-1" />
+    </div>
   )
+}
 }
