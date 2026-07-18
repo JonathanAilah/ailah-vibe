@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 // Countdown handled inline via hook
 
 // Live Activity feed — simulated for now, can be wired to real Supabase events later
@@ -13,12 +13,12 @@ const FEED_ITEMS = [
   { icon: '🎯', text: 'New vibe-a-thon submitted: "Fix My Life" utility app', tag: 'LIVE', color: '#FF8A21', ago: '1h ago' },
 ]
 
-// Simple countdown hook
-function useCountdown(targetDate: Date) {
+// Simple countdown hook - takes a stable timestamp number, not a Date object
+function useCountdown(targetTimestamp: number) {
   const [time, setTime] = useState({ d: 0, h: 0, m: 0, s: 0 })
   useEffect(() => {
     const update = () => {
-      const diff = Math.max(0, targetDate.getTime() - Date.now())
+      const diff = Math.max(0, targetTimestamp - Date.now())
       setTime({
         d: Math.floor(diff / 86400000),
         h: Math.floor((diff % 86400000) / 3600000),
@@ -29,7 +29,7 @@ function useCountdown(targetDate: Date) {
     update()
     const t = setInterval(update, 1000)
     return () => clearInterval(t)
-  }, [targetDate])
+  }, [targetTimestamp])
   return time
 }
 
@@ -71,10 +71,13 @@ export default function Home() {
     FEED_ITEMS[(feedIndex + i) % FEED_ITEMS.length]
   )
 
-  const nextEventDate = vibeAThon
-    ? new Date(vibeAThon.status === 'upcoming' ? vibeAThon.start_date : vibeAThon.end_date)
-    : new Date(Date.now() + 5 * 24 * 60 * 60 * 1000)
-  const cd = useCountdown(nextEventDate)
+  const nextEventTimestamp = useMemo(() => {
+    if (vibeAThon) {
+      return new Date(vibeAThon.status === 'upcoming' ? vibeAThon.start_date : vibeAThon.end_date).getTime()
+    }
+    return Date.now() + 5 * 24 * 60 * 60 * 1000
+  }, [vibeAThon])
+  const cd = useCountdown(nextEventTimestamp)
 
   return (
     <div className="space-y-0">
