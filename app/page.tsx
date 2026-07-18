@@ -134,7 +134,7 @@ export default function Home() {
             </div>
             <div className="flex items-baseline gap-2 mb-4">
               <span className="font-chakra font-bold text-[clamp(34px,4.4vw,46px)] text-white leading-none">
-                <CountUpStat end={14800} prefix="$" />
+                <CountUpStat end={14800} prefix="$" label="" />
               </span>
               <span className="font-mono text-sm text-lavender-dim">raised of $20,000 goal</span>
             </div>
@@ -235,7 +235,7 @@ export default function Home() {
           ].map((stat) => (
             <div key={stat.label} className={`p-6 rounded-[16px] border ${stat.border}`} style={{ background: 'linear-gradient(180deg,rgba(30,18,51,.7),rgba(18,10,30,.7))' }}>
               <p className={`font-chakra font-bold text-[clamp(28px,3.2vw,40px)] leading-none ${stat.color}`}>
-                {stat.prefix || ''}{stat.value === 0 ? '0' : <CountUpStat end={stat.value} prefix={stat.prefix || ''} />}
+                {stat.prefix || ''}{stat.value === 0 ? '0' : <CountUpStat end={stat.value} prefix={stat.prefix || ''} label="" />}
               </p>
               <p className="font-mono text-[11px] tracking-wide text-lavender-dim mt-2">{stat.label}</p>
             </div>
