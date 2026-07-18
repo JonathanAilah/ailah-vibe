@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { useState, useEffect, useRef } from 'react'
-import { CountUpStat } from '@/components/CountUpStat'
 // Countdown handled inline via hook
 
 // Live Activity feed — simulated for now, can be wired to real Supabase events later
@@ -134,7 +133,7 @@ export default function Home() {
             </div>
             <div className="flex items-baseline gap-2 mb-4">
               <span className="font-chakra font-bold text-[clamp(34px,4.4vw,46px)] text-white leading-none">
-                <CountUpStat end={14800} prefix="$" label="" />
+                $14,800
               </span>
               <span className="font-mono text-sm text-lavender-dim">raised of $20,000 goal</span>
             </div>
@@ -175,7 +174,7 @@ export default function Home() {
       {/* ── SCHOLARSHIP SPOTLIGHT ── */}
       <section className="max-w-[1240px] mx-auto px-4 sm:px-[clamp(16px,5vw,64px)] pb-[clamp(48px,7vw,90px)]">
         <div className="relative overflow-hidden rounded-[22px] p-[clamp(28px,4vw,52px)] border border-violet-accent/32" style={{ background: 'linear-gradient(120deg,#1a0f2e,#3A2A5C 60%,#2a1550)' }}>
-          <div className="absolute bottom-[-70px] right-[-30px] w-[280px] h-[280px] rounded-full opacity-50" style={{ background: 'radial-gradient(circle,rgba(255,138,33,.32),transparent 65%)', filter: 'blur(24px)' }} />
+          <div className="absolute bottom-[-70px] right-[-30px] w-[280px] h-[280px] rounded-full opacity-50 pointer-events-none" style={{ background: 'radial-gradient(circle,rgba(255,138,33,.32),transparent 65%)', filter: 'blur(24px)' }} />
           <div className="relative grid lg:grid-cols-[1.2fr_0.8fr] gap-[clamp(24px,4vw,48px)] items-center">
             <div>
               <div className="inline-flex items-center gap-2 font-mono text-[11px] tracking-[2px] text-[#FFCE9A] mb-4">
@@ -235,7 +234,7 @@ export default function Home() {
           ].map((stat) => (
             <div key={stat.label} className={`p-6 rounded-[16px] border ${stat.border}`} style={{ background: 'linear-gradient(180deg,rgba(30,18,51,.7),rgba(18,10,30,.7))' }}>
               <p className={`font-chakra font-bold text-[clamp(28px,3.2vw,40px)] leading-none ${stat.color}`}>
-                {stat.prefix || ''}{stat.value === 0 ? '0' : <CountUpStat end={stat.value} prefix={stat.prefix || ''} label="" />}
+                {stat.value === 0 ? `${stat.prefix || ''}0` : `${stat.prefix || ''}${stat.value.toLocaleString()}`}
               </p>
               <p className="font-mono text-[11px] tracking-wide text-lavender-dim mt-2">{stat.label}</p>
             </div>
@@ -254,7 +253,7 @@ export default function Home() {
       {/* ── VIBE-A-THON TEASER ── */}
       <section className="max-w-[1240px] mx-auto px-4 sm:px-[clamp(16px,5vw,64px)] py-[clamp(48px,6vw,90px)]">
         <div className="relative overflow-hidden rounded-[22px] p-[clamp(30px,5vw,56px)] border border-orange-border/30" style={{ background: 'linear-gradient(120deg,#2a1550,#3A2A5C 55%,#1a0f2e)' }}>
-          <div className="absolute top-[-60px] right-[-30px] w-[260px] h-[260px] rounded-full opacity-40" style={{ background: 'radial-gradient(circle,rgba(255,138,33,.4),transparent 65%)', filter: 'blur(20px)' }} />
+          <div className="absolute top-[-60px] right-[-30px] w-[260px] h-[260px] rounded-full opacity-40 pointer-events-none" style={{ background: 'radial-gradient(circle,rgba(255,138,33,.4),transparent 65%)', filter: 'blur(20px)' }} />
           <div className="relative flex flex-wrap items-center justify-between gap-7">
             <div className="min-w-[260px]">
               <div className="inline-flex items-center gap-2 font-mono text-[11px] tracking-[2px] text-[#FFCE9A] mb-4">
@@ -296,7 +295,7 @@ export default function Home() {
       {/* ── MERCH SECTION ── */}
       <section className="max-w-[1240px] mx-auto px-4 sm:px-[clamp(16px,5vw,64px)] pb-[clamp(48px,6vw,90px)]">
         <div className="relative overflow-hidden rounded-[22px] p-[clamp(28px,4vw,48px)] border border-violet-border/30" style={{ background: 'linear-gradient(120deg,#160D24,#2a1550 72%,#1a0f2e)' }}>
-          <div className="absolute top-[-60px] left-[-30px] w-[260px] h-[260px] rounded-full opacity-30" style={{ background: 'radial-gradient(circle,rgba(255,138,33,.28),transparent 65%)', filter: 'blur(24px)' }} />
+          <div className="absolute top-[-60px] left-[-30px] w-[260px] h-[260px] rounded-full opacity-30 pointer-events-none" style={{ background: 'radial-gradient(circle,rgba(255,138,33,.28),transparent 65%)', filter: 'blur(24px)' }} />
           <div className="relative grid lg:grid-cols-[0.82fr_1.18fr] gap-[clamp(24px,4vw,44px)] items-center">
             <div>
               <p className="font-mono text-[11px] tracking-[2px] text-[#FFCE9A] mb-4">◆ MERCH DROP · SUPPORT THE MISSION</p>
