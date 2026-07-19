@@ -9,6 +9,10 @@ interface Settings {
   offline_raised: number
   cohort_spots_total: number
   cohort_spots_funded: number
+  students_floor: number
+  projects_shipped_floor: number
+  prizes_awarded_floor: number
+  scholarships_awarded_floor: number
   updated_at: string
 }
 
@@ -23,6 +27,10 @@ export default function AdminFund() {
   const [offlineRaised, setOfflineRaised] = useState('')
   const [cohortSpotsTotal, setCohortSpotsTotal] = useState('')
   const [cohortSpotsFunded, setCohortSpotsFunded] = useState('')
+  const [studentsFloor, setStudentsFloor] = useState('')
+  const [projectsShippedFloor, setProjectsShippedFloor] = useState('')
+  const [prizesAwardedFloor, setPrizesAwardedFloor] = useState('')
+  const [scholarshipsAwardedFloor, setScholarshipsAwardedFloor] = useState('')
 
   const [stripeTotal, setStripeTotal] = useState(0)
   const [stripeCount, setStripeCount] = useState(0)
@@ -46,6 +54,10 @@ export default function AdminFund() {
           setOfflineRaised(String(s.offline_raised))
           setCohortSpotsTotal(String(s.cohort_spots_total))
           setCohortSpotsFunded(String(s.cohort_spots_funded))
+          setStudentsFloor(String(s.students_floor ?? 0))
+          setProjectsShippedFloor(String(s.projects_shipped_floor ?? 0))
+          setPrizesAwardedFloor(String(s.prizes_awarded_floor ?? 0))
+          setScholarshipsAwardedFloor(String(s.scholarships_awarded_floor ?? 0))
           setUpdatedAt(s.updated_at)
         }
         setStripeTotal(data.stripeTotal || 0)
@@ -65,12 +77,20 @@ export default function AdminFund() {
     const offline = parseInt(offlineRaised)
     const totalSpots = parseInt(cohortSpotsTotal)
     const fundedSpots = parseInt(cohortSpotsFunded)
+    const sFloor = parseInt(studentsFloor)
+    const pFloor = parseInt(projectsShippedFloor)
+    const przFloor = parseInt(prizesAwardedFloor)
+    const schFloor = parseInt(scholarshipsAwardedFloor)
 
     if (isNaN(goal) || goal < 0) return setError('Goal amount must be a positive number.')
     if (isNaN(offline) || offline < 0) return setError('Offline donations must be a positive number.')
     if (isNaN(totalSpots) || totalSpots < 0) return setError('Total spots must be a positive number.')
     if (isNaN(fundedSpots) || fundedSpots < 0) return setError('Funded spots must be a positive number.')
     if (fundedSpots > totalSpots) return setError('Funded spots can\u2019t exceed total spots.')
+    if (isNaN(sFloor) || sFloor < 0) return setError('Students display floor must be a positive number.')
+    if (isNaN(pFloor) || pFloor < 0) return setError('Projects display floor must be a positive number.')
+    if (isNaN(przFloor) || przFloor < 0) return setError('Prizes display floor must be a positive number.')
+    if (isNaN(schFloor) || schFloor < 0) return setError('Scholarships display floor must be a positive number.')
 
     setSaving(true)
     try {
@@ -82,6 +102,10 @@ export default function AdminFund() {
           offlineRaised: offline,
           cohortSpotsTotal: totalSpots,
           cohortSpotsFunded: fundedSpots,
+          studentsFloor: sFloor,
+          projectsShippedFloor: pFloor,
+          prizesAwardedFloor: przFloor,
+          scholarshipsAwardedFloor: schFloor,
         }),
       })
       if (res.ok) {
@@ -172,6 +196,58 @@ export default function AdminFund() {
                   className="w-full bg-panel-deep border border-violet-border rounded-sm px-4 py-3 text-lavender text-sm outline-none focus:border-violet-accent"
                 />
                 <p className="text-xs text-lavender-dim">How many scholarships have been fully funded</p>
+              </div>
+            </div>
+
+            {/* Impact Stats Floors */}
+            <div className="pt-2 border-t border-violet-border/40">
+              <div className="pt-4">
+                <h3 className="font-chakra font-bold text-white mb-1">Impact Stats — display floors</h3>
+                <p className="text-sm text-lavender-muted mb-4">
+                  These are the baseline numbers shown on the home page and vibe-a-thons page. Real activity from the database will automatically override any floor once it exceeds these numbers.
+                </p>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="font-mono text-xs text-lavender-dim uppercase tracking-widest">Students (Beginners Empowered)</label>
+                  <input
+                    type="number" min="0"
+                    value={studentsFloor} onChange={(e) => { setStudentsFloor(e.target.value); setSuccess(false) }}
+                    className="w-full bg-panel-deep border border-violet-border rounded-sm px-4 py-3 text-lavender text-sm outline-none focus:border-violet-accent"
+                  />
+                  <p className="text-xs text-lavender-dim">Baseline count including off-platform impact</p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="font-mono text-xs text-lavender-dim uppercase tracking-widest">Projects Shipped</label>
+                  <input
+                    type="number" min="0"
+                    value={projectsShippedFloor} onChange={(e) => { setProjectsShippedFloor(e.target.value); setSuccess(false) }}
+                    className="w-full bg-panel-deep border border-violet-border rounded-sm px-4 py-3 text-lavender text-sm outline-none focus:border-violet-accent"
+                  />
+                  <p className="text-xs text-lavender-dim">Baseline count of projects ever built</p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="font-mono text-xs text-lavender-dim uppercase tracking-widest">Prizes Awarded ($)</label>
+                  <input
+                    type="number" min="0"
+                    value={prizesAwardedFloor} onChange={(e) => { setPrizesAwardedFloor(e.target.value); setSuccess(false) }}
+                    className="w-full bg-panel-deep border border-violet-border rounded-sm px-4 py-3 text-lavender text-sm outline-none focus:border-violet-accent"
+                  />
+                  <p className="text-xs text-lavender-dim">Total prize money ever awarded to students</p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="font-mono text-xs text-lavender-dim uppercase tracking-widest">Scholarships Awarded</label>
+                  <input
+                    type="number" min="0"
+                    value={scholarshipsAwardedFloor} onChange={(e) => { setScholarshipsAwardedFloor(e.target.value); setSuccess(false) }}
+                    className="w-full bg-panel-deep border border-violet-border rounded-sm px-4 py-3 text-lavender text-sm outline-none focus:border-violet-accent"
+                  />
+                  <p className="text-xs text-lavender-dim">Total scholarships ever awarded</p>
+                </div>
               </div>
             </div>
 
