@@ -56,6 +56,9 @@ export default function AdminDashboard() {
           <h1 className="text-3xl sm:text-4xl font-chakra font-bold text-white">Overview</h1>
         </div>
         <div className="flex gap-3">
+          <Link href="/admin/fund" className="px-5 py-2.5 rounded-sm border border-violet-accent text-lavender-muted font-chakra font-bold text-sm uppercase transition-all hover:bg-surface-violet">
+            FUND
+          </Link>
           <Link href="/admin/vibe-a-thons" className="px-5 py-2.5 rounded-sm border border-violet-accent text-lavender-muted font-chakra font-bold text-sm uppercase transition-all hover:bg-surface-violet">
             VIBE-A-THONS
           </Link>
@@ -120,6 +123,10 @@ export default function AdminDashboard() {
 
           {/* Quick links */}
           <div className="grid sm:grid-cols-2 gap-4">
+            <Link href="/admin/fund" className="card p-6 space-y-2 hover:border-violet-accent transition-all group">
+              <p className="font-chakra font-bold text-white group-hover:text-orange-primary transition-colors">Update Scholarship Fund →</p>
+              <p className="text-sm text-lavender-muted">Edit the raised amount, goal, and cohort numbers shown on the home page.</p>
+            </Link>
             <Link href="/admin/applications" className="card p-6 space-y-2 hover:border-violet-accent transition-all group">
               <p className="font-chakra font-bold text-white group-hover:text-orange-primary transition-colors">Review Scholarship Applications →</p>
               <p className="text-sm text-lavender-muted">Read student applications and approve, fund, or reject them.</p>
