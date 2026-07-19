@@ -1,3 +1,4 @@
+
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -52,7 +53,8 @@ export default function AdminDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <p className="eyebrow mb-2">// ADMIN PANEL</p>
+          <Link href="/" className="font-mono text-xs text-lavender-dim hover:text-lavender transition-colors">← BACK TO SITE</Link>
+          <p className="eyebrow mt-2 mb-2">// ADMIN PANEL</p>
           <h1 className="text-3xl sm:text-4xl font-chakra font-bold text-white">Overview</h1>
         </div>
         <div className="flex gap-3">
