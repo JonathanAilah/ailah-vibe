@@ -63,7 +63,8 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { goalAmount, offlineRaised, cohortSpotsTotal, cohortSpotsFunded } = await request.json()
+    const { goalAmount, offlineRaised, cohortSpotsTotal, cohortSpotsFunded,
+            studentsFloor, projectsShippedFloor, prizesAwardedFloor, scholarshipsAwardedFloor } = await request.json()
 
     const payload: Record<string, number | string> = {
       updated_at: new Date().toISOString(),
@@ -72,6 +73,10 @@ export async function POST(request: NextRequest) {
     if (typeof offlineRaised === 'number') payload.offline_raised = Math.max(0, Math.floor(offlineRaised))
     if (typeof cohortSpotsTotal === 'number') payload.cohort_spots_total = Math.max(0, Math.floor(cohortSpotsTotal))
     if (typeof cohortSpotsFunded === 'number') payload.cohort_spots_funded = Math.max(0, Math.floor(cohortSpotsFunded))
+    if (typeof studentsFloor === 'number') payload.students_floor = Math.max(0, Math.floor(studentsFloor))
+    if (typeof projectsShippedFloor === 'number') payload.projects_shipped_floor = Math.max(0, Math.floor(projectsShippedFloor))
+    if (typeof prizesAwardedFloor === 'number') payload.prizes_awarded_floor = Math.max(0, Math.floor(prizesAwardedFloor))
+    if (typeof scholarshipsAwardedFloor === 'number') payload.scholarships_awarded_floor = Math.max(0, Math.floor(scholarshipsAwardedFloor))
 
     const res = await fetch(`${supabaseUrl}/rest/v1/fund_settings?id=eq.1`, {
       method: 'PATCH',
