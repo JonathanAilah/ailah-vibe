@@ -198,7 +198,7 @@ export default function Home() {
                 ))}
               </div>
               <div className="flex flex-wrap gap-4">
-                <Link href="/fund-a-scholarship" className="font-chakra font-bold text-[15px] tracking-wide text-[#1a0f2e] bg-[#C9B6EF] px-7 py-4 rounded-[11px] transition-all hover:-translate-y-0.5">
+                <Link href="/apply-for-scholarship" className="font-chakra font-bold text-[15px] tracking-wide text-[#1a0f2e] bg-[#C9B6EF] px-7 py-4 rounded-[11px] transition-all hover:-translate-y-0.5">
                   APPLY FOR A SCHOLARSHIP →
                 </Link>
                 <Link href="/fund-a-scholarship" className="font-chakra font-bold text-[15px] tracking-wide text-ink bg-orange-primary px-6 py-4 rounded-[11px] transition-all hover:shadow-orange-glow-hover hover:-translate-y-0.5">
