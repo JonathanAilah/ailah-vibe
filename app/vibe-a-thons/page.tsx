@@ -26,9 +26,10 @@ interface Winner {
 }
 
 interface Stats {
-  totalUsers: number
-  totalProjects: number
-  totalPrizesAwarded: number
+  students: number
+  projects_shipped: number
+  prizes_awarded: number
+  scholarships_awarded: number
 }
 
 // Countdown hook — takes a timestamp (number) for stable reference equality
@@ -56,7 +57,7 @@ export default function VibeatThons() {
   const [upcomingList, setUpcomingList] = useState<VibeAThon[]>([])
   const [winners, setWinners] = useState<Winner[]>([])
   const [loading, setLoading] = useState(true)
-  const [stats, setStats] = useState<Stats>({ totalUsers: 0, totalProjects: 0, totalPrizesAwarded: 0 })
+  const [stats, setStats] = useState<Stats>({ students: 0, projects_shipped: 0, prizes_awarded: 0, scholarships_awarded: 0 })
 
   useEffect(() => {
     fetch('/api/vibe-a-thons/current')
@@ -73,15 +74,9 @@ export default function VibeatThons() {
       })
       .catch(() => setUpcomingList([]))
 
-    // Try to get public stats — this is best-effort since the admin/stats endpoint requires auth
-    fetch('/api/vibe-a-thons/list')
+    fetch('/api/site-stats')
       .then((r) => r.json())
-      .then((data) => {
-        // Compute total prizes across all ended and live events
-        const all: VibeAThon[] = data.vibeAThons || []
-        const total = all.reduce((sum, v) => sum + v.first_prize + v.second_prize + v.third_prize, 0)
-        setStats((prev) => ({ ...prev, totalPrizesAwarded: total }))
-      })
+      .then((data) => setStats(data))
       .catch(() => null)
   }, [])
 
@@ -145,16 +140,20 @@ export default function VibeatThons() {
           {/* Stats row */}
           <div className="grid grid-cols-3 gap-4 max-w-[500px]">
             <div>
-              <p className="font-chakra font-bold text-[clamp(24px,2.8vw,32px)] text-orange-primary leading-none">12.4K</p>
+              <p className="font-chakra font-bold text-[clamp(24px,2.8vw,32px)] text-orange-primary leading-none">
+                {stats.students >= 1000 ? (stats.students / 1000).toFixed(1) + 'K' : stats.students.toLocaleString()}
+              </p>
               <p className="font-mono text-[10px] text-lavender-dim uppercase tracking-widest mt-2">Students</p>
             </div>
             <div>
-              <p className="font-chakra font-bold text-[clamp(24px,2.8vw,32px)] text-white leading-none">1,204</p>
+              <p className="font-chakra font-bold text-[clamp(24px,2.8vw,32px)] text-white leading-none">
+                {stats.projects_shipped.toLocaleString()}
+              </p>
               <p className="font-mono text-[10px] text-lavender-dim uppercase tracking-widest mt-2">Shipped</p>
             </div>
             <div>
               <p className="font-chakra font-bold text-[clamp(24px,2.8vw,32px)] text-orange-primary leading-none">
-                ${stats.totalPrizesAwarded > 0 ? (stats.totalPrizesAwarded / 1000).toFixed(1) + 'K' : '48.2K'}
+                ${stats.prizes_awarded >= 1000 ? (stats.prizes_awarded / 1000).toFixed(1) + 'K' : stats.prizes_awarded.toLocaleString()}
               </p>
               <p className="font-mono text-[10px] text-lavender-dim uppercase tracking-widest mt-2">In Prizes</p>
             </div>
