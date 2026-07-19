@@ -77,7 +77,11 @@ export default function AdminApplications() {
     <div className="min-h-screen px-4 sm:px-8 lg:px-16 py-12 space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <Link href="/admin" className="font-mono text-xs text-lavender-dim hover:text-lavender transition-colors">← BACK TO OVERVIEW</Link>
+          <div className="flex gap-4 items-center">
+          <Link href="/" className="font-mono text-xs text-lavender-dim hover:text-lavender transition-colors">← BACK TO SITE</Link>
+          <span className="font-mono text-xs text-lavender-dim">·</span>
+          <Link href="/admin" className="font-mono text-xs text-lavender-dim hover:text-lavender transition-colors">BACK TO OVERVIEW</Link>
+        </div>
           <h1 className="text-3xl sm:text-4xl font-chakra font-bold text-white mt-2">Scholarship Applications</h1>
         </div>
         <p className="font-mono text-sm text-lavender-dim">{applications.length} total</p>
