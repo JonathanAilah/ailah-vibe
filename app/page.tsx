@@ -33,6 +33,27 @@ function useCountdown(targetTimestamp: number) {
   return time
 }
 
+// Fund status hook — pulls current fund data from Supabase
+function useFundStatus() {
+  const [fund, setFund] = useState<{
+    raised: number
+    goal: number
+    percentage: number
+    cohort_spots_total: number
+    cohort_spots_funded: number
+    spots_left: number
+  } | null>(null)
+
+  useEffect(() => {
+    fetch('/api/fund-status')
+      .then((r) => r.json())
+      .then((d) => setFund(d))
+      .catch(() => null)
+  }, [])
+
+  return fund
+}
+
 // Vibe-a-thon teaser — wired to real API
 function useNextVibeAThon() {
   const [vibeAThon, setVibeAThon] = useState<{
@@ -57,6 +78,7 @@ function useNextVibeAThon() {
 
 export default function Home() {
   const vibeAThon = useNextVibeAThon()
+  const fund = useFundStatus()
   const [feedIndex, setFeedIndex] = useState(0)
 
   // Rotate live activity feed
@@ -136,17 +158,17 @@ export default function Home() {
             </div>
             <div className="flex items-baseline gap-2 mb-4">
               <span className="font-chakra font-bold text-[clamp(34px,4.4vw,46px)] text-white leading-none">
-                $14,800
+                ${(fund?.raised ?? 0).toLocaleString()}
               </span>
-              <span className="font-mono text-sm text-lavender-dim">raised of $20,000 goal</span>
+              <span className="font-mono text-sm text-lavender-dim">raised of ${(fund?.goal ?? 20000).toLocaleString()} goal</span>
             </div>
             <div className="h-3 rounded-full bg-panel-deep overflow-hidden mb-2">
               <div
-                className="h-full rounded-full bg-gradient-accent"
-                style={{ width: '74%', backgroundSize: '200% 100%', animation: 'sheen 2.4s linear infinite' }}
+                className="h-full rounded-full bg-gradient-accent transition-all duration-700"
+                style={{ width: `${fund?.percentage ?? 0}%`, backgroundSize: '200% 100%', animation: 'sheen 2.4s linear infinite' }}
               />
             </div>
-            <p className="font-mono text-[11px] text-lavender-dim">74% funded this quarter · $400 sends one student</p>
+            <p className="font-mono text-[11px] text-lavender-dim">{fund?.percentage ?? 0}% funded · $400 sends one student</p>
           </div>
 
           {/* Live Activity Feed */}
@@ -210,13 +232,20 @@ export default function Home() {
             <div className="bg-panel-deep/40 border border-white/14 rounded-[16px] p-6">
               <p className="font-mono text-[11px] tracking-[1.5px] text-lavender-muted mb-2">THIS COHORT</p>
               <div className="flex items-baseline gap-2 mb-4">
-                <span className="font-chakra font-bold text-[48px] text-orange-primary leading-none">13</span>
+                <span className="font-chakra font-bold text-[48px] text-orange-primary leading-none">{fund?.spots_left ?? 0}</span>
                 <span className="font-mono text-sm text-lavender-muted">spots left</span>
               </div>
               <div className="h-3 rounded-full bg-panel-deep overflow-hidden mb-2">
-                <div className="h-full w-[74%] rounded-full bg-gradient-accent" style={{ backgroundSize: '200% 100%', animation: 'sheen 2.6s linear infinite' }} />
+                <div
+                  className="h-full rounded-full bg-gradient-accent transition-all duration-700"
+                  style={{
+                    width: `${fund && fund.cohort_spots_total > 0 ? Math.round((fund.cohort_spots_funded / fund.cohort_spots_total) * 100) : 0}%`,
+                    backgroundSize: '200% 100%',
+                    animation: 'sheen 2.6s linear infinite'
+                  }}
+                />
               </div>
-              <p className="font-mono text-[11px] text-lavender-dim">37 of 50 scholarships funded</p>
+              <p className="font-mono text-[11px] text-lavender-dim">{fund?.cohort_spots_funded ?? 0} of {fund?.cohort_spots_total ?? 0} scholarships funded</p>
               <div className="h-px bg-white/12 my-5" />
               <p className="font-mono text-xs text-lavender-muted leading-relaxed">
                 $400 sends one student<br />through the full program.
