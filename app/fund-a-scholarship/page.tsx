@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 const scholarships = [
@@ -62,36 +63,120 @@ const scholarships = [
 
 const donationAmounts = [25, 50, 100, 200, 400]
 
-export default function FundAScholarship() {
+function FundAScholarshipContent() {
+  const searchParams = useSearchParams()
   const [selectedScholarship, setSelectedScholarship] = useState<string | null>(null)
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null)
   const [customAmount, setCustomAmount] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [donating, setDonating] = useState(false)
-  const [donated, setDonated] = useState(false)
+  const [donateError, setDonateError] = useState('')
+  const [returnedStatus, setReturnedStatus] = useState<'success' | 'cancelled' | null>(null)
+  const [returnedInfo, setReturnedInfo] = useState<{ amount?: string; scholarshipName?: string } | null>(null)
 
   const activeScholarship = scholarships.find((s) => s.id === selectedScholarship)
   const donationAmount = customAmount ? parseInt(customAmount) : selectedAmount
+
+  // Detect return from Stripe Checkout
+  useEffect(() => {
+    const donationParam = searchParams.get('donation')
+    if (donationParam === 'success' || donationParam === 'cancelled') {
+      setReturnedStatus(donationParam)
+      try {
+        const saved = sessionStorage.getItem('vibeCoden_pending_donation')
+        if (saved) {
+          setReturnedInfo(JSON.parse(saved))
+          sessionStorage.removeItem('vibeCoden_pending_donation')
+        }
+      } catch {
+        // ignore
+      }
+    }
+  }, [searchParams])
 
   const handleDonate = (scholarshipId: string) => {
     setSelectedScholarship(scholarshipId)
     setSelectedAmount(null)
     setCustomAmount('')
-    setDonated(false)
+    setDonateError('')
     setShowModal(true)
   }
 
   const handleConfirmDonate = async () => {
     if (!donationAmount || donationAmount < 1) return
     setDonating(true)
-    // Simulate payment processing (Stripe will go here)
-    await new Promise((r) => setTimeout(r, 2000))
-    setDonating(false)
-    setDonated(true)
+    setDonateError('')
+
+    try {
+      // Save context so we can show a personalized message after returning from Stripe
+      sessionStorage.setItem(
+        'vibeCoden_pending_donation',
+        JSON.stringify({ amount: donationAmount, scholarshipName: activeScholarship?.name })
+      )
+
+      const res = await fetch('/api/donations/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: donationAmount,
+          scholarshipId: selectedScholarship || 'general',
+          scholarshipName: activeScholarship?.name,
+        }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok || !data.url) {
+        setDonateError(data.error || 'Something went wrong. Please try again.')
+        setDonating(false)
+        return
+      }
+
+      // Redirect to Stripe's secure checkout page
+      window.location.href = data.url
+    } catch {
+      setDonateError('Something went wrong. Please try again.')
+      setDonating(false)
+    }
   }
 
   return (
     <div className="space-y-16">
+
+      {/* Return-from-Stripe banner */}
+      {returnedStatus === 'success' && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-16 pt-8">
+          <div className="card bg-gradient-hero p-8 sm:p-12 text-center space-y-4 border border-success-green/40">
+            <div className="text-5xl">🎉</div>
+            <h2 className="text-2xl sm:text-3xl font-chakra font-bold text-white">Thank you so much!</h2>
+            <p className="text-lavender-muted">
+              Your {returnedInfo?.amount ? `$${returnedInfo.amount}` : ''} donation
+              {returnedInfo?.scholarshipName ? ` to fund ${returnedInfo.scholarshipName}'s scholarship` : ' to our general fund'}{' '}
+              is making a real difference. A receipt has been emailed to you by Stripe.
+            </p>
+            <button
+              onClick={() => setReturnedStatus(null)}
+              className="px-6 py-3 rounded-sm bg-orange-primary text-ink font-chakra font-bold text-sm uppercase transition-all hover:shadow-orange-glow-hover"
+            >
+              DONE
+            </button>
+          </div>
+        </section>
+      )}
+
+      {returnedStatus === 'cancelled' && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-16 pt-8">
+          <div className="card p-6 text-center space-y-2 border border-violet-border">
+            <p className="text-lavender-muted text-sm">Your donation was cancelled — no charge was made.</p>
+            <button
+              onClick={() => setReturnedStatus(null)}
+              className="text-xs font-mono text-lavender-dim hover:text-lavender transition-colors uppercase"
+            >
+              Dismiss
+            </button>
+          </div>
+        </section>
+      )}
 
       {/* Hero */}
       <section className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-16 py-12 sm:py-20">
@@ -102,11 +187,10 @@ export default function FundAScholarship() {
             <span className="text-orange-primary">For $400.</span>
           </h1>
           <p className="text-base sm:text-lg text-lavender-muted max-w-2xl mx-auto">
-            Every scholarship covers one student's full access to AI tools, mentorship, and vibe-a-thon entry. 
+            Every scholarship covers one student's full access to AI tools, mentorship, and vibe-a-thon entry.
             Pick a student below and fund their journey. 100% of your donation goes directly to them.
           </p>
 
-          {/* Stats */}
           <div className="grid grid-cols-3 gap-6 max-w-lg mx-auto pt-4">
             <div>
               <p className="text-3xl font-chakra font-bold text-white">214</p>
@@ -167,8 +251,6 @@ export default function FundAScholarship() {
 
             return (
               <div key={s.id} className="card p-8 space-y-6 flex flex-col">
-
-                {/* Header */}
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-4">
                     <div className={`w-14 h-14 rounded-sm border flex items-center justify-center text-2xl font-chakra font-bold ${s.avatarColor}`}>
@@ -186,23 +268,19 @@ export default function FundAScholarship() {
                   </span>
                 </div>
 
-                {/* Status */}
                 <span className={`inline-block text-xs px-3 py-1 rounded-full font-mono border w-fit ${s.statusColor}`}>
                   ● {s.status}
                 </span>
 
-                {/* Goal */}
                 <div>
                   <p className="font-mono text-xs text-lavender-dim uppercase tracking-widest mb-1">Goal</p>
                   <p className="text-white font-chakra font-bold">{s.goal}</p>
                 </div>
 
-                {/* Story */}
                 <p className="text-lavender-muted text-sm leading-relaxed flex-1">
                   {s.story}
                 </p>
 
-                {/* Progress */}
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-lavender-muted font-mono">${s.raised} raised</span>
@@ -220,7 +298,6 @@ export default function FundAScholarship() {
                   </div>
                 </div>
 
-                {/* Donate Button */}
                 <button
                   onClick={() => handleDonate(s.id)}
                   className={`w-full px-6 py-3 rounded-sm font-chakra font-bold text-sm uppercase transition-all hover:-translate-y-0.5 ${
@@ -252,10 +329,10 @@ export default function FundAScholarship() {
           <div className="flex flex-col gap-4">
             <button
               onClick={() => {
-                setSelectedScholarship('general')
+                setSelectedScholarship(null)
                 setSelectedAmount(null)
                 setCustomAmount('')
-                setDonated(false)
+                setDonateError('')
                 setShowModal(true)
               }}
               className="w-full px-6 py-4 rounded-sm bg-orange-primary text-ink font-chakra font-bold text-sm uppercase transition-all hover:shadow-orange-glow-hover hover:-translate-y-0.5"
@@ -288,8 +365,7 @@ export default function FundAScholarship() {
         >
           <div className="card w-full max-w-md p-8 space-y-6 relative">
 
-            {/* Close */}
-            {!donating && !donated && (
+            {!donating && (
               <button
                 onClick={() => setShowModal(false)}
                 className="absolute top-4 right-4 text-lavender-dim hover:text-lavender transition-colors font-mono text-lg"
@@ -298,108 +374,83 @@ export default function FundAScholarship() {
               </button>
             )}
 
-            {donated ? (
-              /* Success state */
-              <div className="text-center space-y-6 py-4">
-                <div className="text-6xl">🎉</div>
-                <h3 className="text-2xl font-chakra font-bold text-white">
-                  Thank you so much!
-                </h3>
-                <p className="text-lavender-muted">
-                  Your ${donationAmount} donation
-                  {activeScholarship ? ` to fund ${activeScholarship.name}'s scholarship` : ' to our general fund'}{' '}
-                  is making a real difference. A student's life just got a little brighter.
-                </p>
-                <div className="bg-panel-deep rounded p-4 border border-success-green/30">
-                  <p className="font-mono text-xs text-success-green uppercase tracking-widest mb-1">
-                    ✓ Donation Confirmed
-                  </p>
-                  <p className="text-white font-chakra font-bold text-xl">${donationAmount}</p>
-                  <p className="text-lavender-dim text-sm mt-1">
-                    {activeScholarship?.name ?? 'General Fund'}
-                  </p>
+            <div>
+              <p className="eyebrow mb-2">♥ FUND A SCHOLARSHIP</p>
+              <h3 className="text-xl font-chakra font-bold text-white">
+                {activeScholarship
+                  ? `Fund ${activeScholarship.name}'s Scholarship`
+                  : 'Donate to General Fund'}
+              </h3>
+              {activeScholarship && (
+                <p className="text-sm text-lavender-muted mt-1">{activeScholarship.goal}</p>
+              )}
+            </div>
+
+            {/* Amount selector */}
+            <div className="space-y-3">
+              <p className="font-mono text-xs text-lavender-dim uppercase tracking-widest">
+                Choose an amount
+              </p>
+              <div className="grid grid-cols-3 gap-2">
+                {donationAmounts.map((amount) => (
+                  <button
+                    key={amount}
+                    onClick={() => { setSelectedAmount(amount); setCustomAmount('') }}
+                    className={`py-3 rounded-sm font-chakra font-bold text-sm transition-all ${
+                      selectedAmount === amount && !customAmount
+                        ? 'bg-orange-primary text-ink'
+                        : 'bg-panel-deep border border-violet-border text-lavender-muted hover:border-violet-accent'
+                    }`}
+                  >
+                    ${amount}
+                  </button>
+                ))}
+                <div className={`col-span-3 rounded-sm border transition-all ${customAmount ? 'border-orange-primary' : 'border-violet-border'}`}>
+                  <input
+                    type="number"
+                    placeholder="Custom amount ($)"
+                    value={customAmount}
+                    onChange={(e) => { setCustomAmount(e.target.value); setSelectedAmount(null) }}
+                    className="w-full bg-transparent px-4 py-3 font-mono text-sm text-lavender outline-none placeholder-lavender-dim"
+                  />
                 </div>
-                <p className="text-xs text-lavender-dim font-mono">
-                  A receipt will be emailed to you. Stripe payment coming soon — this is a preview.
-                </p>
-                <button
-                  onClick={() => setShowModal(false)}
-                  className="w-full px-6 py-3 rounded-sm bg-orange-primary text-ink font-chakra font-bold text-sm uppercase transition-all hover:shadow-orange-glow-hover"
-                >
-                  DONE
-                </button>
               </div>
-            ) : (
-              /* Donation form */
-              <>
-                <div>
-                  <p className="eyebrow mb-2">♥ FUND A SCHOLARSHIP</p>
-                  <h3 className="text-xl font-chakra font-bold text-white">
-                    {activeScholarship
-                      ? `Fund ${activeScholarship.name}'s Scholarship`
-                      : 'Donate to General Fund'}
-                  </h3>
-                  {activeScholarship && (
-                    <p className="text-sm text-lavender-muted mt-1">{activeScholarship.goal}</p>
-                  )}
-                </div>
+            </div>
 
-                {/* Amount selector */}
-                <div className="space-y-3">
-                  <p className="font-mono text-xs text-lavender-dim uppercase tracking-widest">
-                    Choose an amount
-                  </p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {donationAmounts.map((amount) => (
-                      <button
-                        key={amount}
-                        onClick={() => { setSelectedAmount(amount); setCustomAmount('') }}
-                        className={`py-3 rounded-sm font-chakra font-bold text-sm transition-all ${
-                          selectedAmount === amount && !customAmount
-                            ? 'bg-orange-primary text-ink'
-                            : 'bg-panel-deep border border-violet-border text-lavender-muted hover:border-violet-accent'
-                        }`}
-                      >
-                        ${amount}
-                      </button>
-                    ))}
-                    <div className={`col-span-3 rounded-sm border transition-all ${customAmount ? 'border-orange-primary' : 'border-violet-border'}`}>
-                      <input
-                        type="number"
-                        placeholder="Custom amount ($)"
-                        value={customAmount}
-                        onChange={(e) => { setCustomAmount(e.target.value); setSelectedAmount(null) }}
-                        className="w-full bg-transparent px-4 py-3 font-mono text-sm text-lavender outline-none placeholder-lavender-dim"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Donate button */}
-                <button
-                  onClick={handleConfirmDonate}
-                  disabled={!donationAmount || donationAmount < 1 || donating}
-                  className={`w-full px-6 py-4 rounded-sm font-chakra font-bold text-sm uppercase transition-all ${
-                    donationAmount && donationAmount >= 1 && !donating
-                      ? 'bg-orange-primary text-ink hover:shadow-orange-glow-hover hover:-translate-y-0.5'
-                      : 'bg-panel-raised text-lavender-dim cursor-not-allowed'
-                  }`}
-                >
-                  {donating
-                    ? 'PROCESSING...'
-                    : donationAmount && donationAmount >= 1
-                      ? `♥ DONATE $${donationAmount}`
-                      : '♥ SELECT AN AMOUNT'}
-                </button>
-
-                <p className="text-xs text-lavender-dim text-center font-mono">
-                  Stripe payment coming soon. Tax deductible · 501(c)(3)
-                </p>
-              </>
+            {donateError && (
+              <p className="text-red-400 font-mono text-xs bg-red-500/10 border border-red-500/30 rounded p-3">⚠ {donateError}</p>
             )}
+
+            <button
+              onClick={handleConfirmDonate}
+              disabled={!donationAmount || donationAmount < 1 || donating}
+              className={`w-full px-6 py-4 rounded-sm font-chakra font-bold text-sm uppercase transition-all ${
+                donationAmount && donationAmount >= 1 && !donating
+                  ? 'bg-orange-primary text-ink hover:shadow-orange-glow-hover hover:-translate-y-0.5'
+                  : 'bg-panel-raised text-lavender-dim cursor-not-allowed'
+              }`}
+            >
+              {donating
+                ? 'REDIRECTING TO SECURE CHECKOUT...'
+                : donationAmount && donationAmount >= 1
+                  ? `♥ DONATE $${donationAmount}`
+                  : '♥ SELECT AN AMOUNT'}
+            </button>
+
+            <p className="text-xs text-lavender-dim text-center font-mono">
+              🔒 Secure payment via Stripe · Tax deductible · 501(c)(3)
+            </p>
           </div>
         </div>
       )}
     </div>
+  )
+}
+
+export default function FundAScholarship() {
+  return (
+    <Suspense fallback={null}>
+      <FundAScholarshipContent />
+    </Suspense>
   )
 }

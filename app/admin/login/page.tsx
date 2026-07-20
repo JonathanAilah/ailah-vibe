@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 export default function AdminLogin() {
   const router = useRouter()
@@ -36,11 +37,14 @@ export default function AdminLogin() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-16">
       <div className="w-full max-w-md space-y-6">
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-1">
+        <div className="text-center space-y-3">
+          <Link href="/" className="inline-block font-mono text-xs text-lavender-dim hover:text-lavender transition-colors">
+            ← BACK TO SITE
+          </Link>
+          <Link href="/" className="inline-flex items-center gap-1 hover:opacity-80 transition-opacity">
             <span className="font-chakra font-bold text-3xl" style={{ WebkitTextStroke: '1px #E7DEF8', color: 'transparent', letterSpacing: '3px' }}>VIBE</span>
             <span className="font-chakra font-bold text-3xl" style={{ WebkitTextStroke: '1px #FF8A21', color: 'transparent', letterSpacing: '3px' }}>CODEN</span>
-          </div>
+          </Link>
           <p className="font-mono text-xs text-lavender-dim tracking-widest">ADMIN ACCESS</p>
         </div>
 

@@ -47,6 +47,7 @@ export async function POST(request: NextRequest) {
         ? `\n\nThe student is currently on ${context} of the Vibe Coden course.`
         : '')
 
+    // OpenAI expects the system prompt as the first message in the array
     const openaiMessages = [
       { role: 'system', content: systemPrompt },
       ...messages.map((m: { role: string; content: string }) => ({

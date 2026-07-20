@@ -11,6 +11,7 @@ export async function GET() {
     hasAnonKey: String(!!anonKey),
   }
 
+  // Test 1: Can we reach the general internet at all?
   try {
     const testRes = await fetch('https://jsonplaceholder.typicode.com/todos/1')
     results.generalInternetTest = `OK - status ${testRes.status}`
@@ -18,6 +19,7 @@ export async function GET() {
     results.generalInternetTest = `FAILED - ${e instanceof Error ? e.message : String(e)}`
   }
 
+  // Test 2: Can we reach Supabase's base URL?
   if (url) {
     try {
       const supaRes = await fetch(url)
@@ -26,6 +28,7 @@ export async function GET() {
       results.supabaseBaseTest = `FAILED - ${e instanceof Error ? e.message : String(e)}`
     }
 
+    // Test 3: Can we reach Supabase's auth endpoint specifically?
     try {
       const authRes = await fetch(`${url}/auth/v1/settings`, {
         headers: { 'apikey': anonKey || '' },

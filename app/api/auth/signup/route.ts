@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: data.message || data.msg || 'Signup failed' }, { status: 400 })
     }
 
+    // Save profile
     if (data.id) {
       try {
         await fetch(`${supabaseUrl}/rest/v1/profiles`, {
