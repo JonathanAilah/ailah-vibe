@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 interface ActivityEvent {
   id: string
   icon: string
@@ -49,9 +51,7 @@ export async function GET() {
 
   try {
     // Recent signups (last 10)
-    const profRes = await fetch(
-      `${supabaseUrl}/rest/v1/profiles?select=id,full_name,username,city,state,created_at&order=created_at.desc&limit=10`,
-      { headers: authHeaders }
+    const profRes = await fetch(`${supabaseUrl}/rest/v1/profiles?select=id,full_name,username,city,state,created_at&order=created_at.desc&limit=10`, { cache: 'no-store', headers: authHeaders }
     )
     const profiles: ProfileRow[] = await profRes.json()
     if (Array.isArray(profiles)) {
@@ -70,9 +70,7 @@ export async function GET() {
 
   try {
     // Recent project submissions (last 10)
-    const projRes = await fetch(
-      `${supabaseUrl}/rest/v1/projects?select=id,title,category,submitted_at,profiles(full_name,username)&order=submitted_at.desc&limit=10`,
-      { headers: authHeaders }
+    const projRes = await fetch(`${supabaseUrl}/rest/v1/projects?select=id,title,category,submitted_at,profiles(full_name,username)&order=submitted_at.desc&limit=10`, { cache: 'no-store', headers: authHeaders }
     )
     const projects: ProjectRow[] = await projRes.json()
     if (Array.isArray(projects)) {
@@ -91,9 +89,7 @@ export async function GET() {
 
   try {
     // Recent donations (last 10)
-    const donRes = await fetch(
-      `${supabaseUrl}/rest/v1/donations?select=id,amount_cents,donated_at&order=donated_at.desc&limit=10`,
-      { headers: authHeaders }
+    const donRes = await fetch(`${supabaseUrl}/rest/v1/donations?select=id,amount_cents,donated_at&order=donated_at.desc&limit=10`, { cache: 'no-store', headers: authHeaders }
     )
     const donations: DonationRow[] = await donRes.json()
     if (Array.isArray(donations)) {
@@ -112,9 +108,7 @@ export async function GET() {
 
   try {
     // Recent scholarship applications (last 10)
-    const appRes = await fetch(
-      `${supabaseUrl}/rest/v1/scholarship_applications?select=id,applied_at&order=applied_at.desc&limit=10`,
-      { headers: authHeaders }
+    const appRes = await fetch(`${supabaseUrl}/rest/v1/scholarship_applications?select=id,applied_at&order=applied_at.desc&limit=10`, { cache: 'no-store', headers: authHeaders }
     )
     const applications: ApplicationRow[] = await appRes.json()
     if (Array.isArray(applications)) {

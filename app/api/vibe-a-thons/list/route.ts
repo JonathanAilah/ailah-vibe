@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 interface VibeAThonRow {
   id: string
   theme: string
@@ -13,20 +15,36 @@ interface VibeAThonRow {
 
 export async function GET() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-  if (!supabaseUrl || !anonKey) {
+  if (!supabaseUrl || !serviceRoleKey) {
+    console.error('vibe-a-thons/list: missing env vars')
     return NextResponse.json({ vibeAThons: [] })
   }
 
   try {
-    const res = await fetch(`${supabaseUrl}/rest/v1/vibe_a_thons?select=*&order=start_date.asc`, {
-      headers: { apikey: anonKey, Authorization: `Bearer ${anonKey}` },
-    })
-    const all: VibeAThonRow[] = await res.json()
-    const now = new Date()
+    const res = await fetch(
+      `${supabaseUrl}/rest/v1/vibe_a_thons?select=*&order=start_date.asc`,
+      {
+        cache: 'no-store',
+        headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` },
+      }
+    )
 
-    const withStatus = (Array.isArray(all) ? all : []).map((v) => {
+    if (!res.ok) {
+      const errText = await res.text()
+      console.error('vibe-a-thons/list: Supabase error', res.status, errText)
+      return NextResponse.json({ vibeAThons: [] })
+    }
+
+    const all: unknown = await res.json()
+    if (!Array.isArray(all)) {
+      console.error('vibe-a-thons/list: unexpected response', all)
+      return NextResponse.json({ vibeAThons: [] })
+    }
+
+    const now = new Date()
+    const withStatus = (all as VibeAThonRow[]).map((v) => {
       const start = new Date(v.start_date)
       const end = new Date(v.end_date)
       let status: 'upcoming' | 'live' | 'ended'
@@ -37,7 +55,8 @@ export async function GET() {
     })
 
     return NextResponse.json({ vibeAThons: withStatus })
-  } catch {
+  } catch (err) {
+    console.error('vibe-a-thons/list: fetch failed', err)
     return NextResponse.json({ vibeAThons: [] })
   }
 }

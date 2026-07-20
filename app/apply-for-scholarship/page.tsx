@@ -46,7 +46,7 @@ export default function ApplyForScholarship() {
     if (!age) return setError('Please select your age.')
     if (!city.trim()) return setError('Please enter your city.')
     if (!state) return setError('Please select your state.')
-    if (!parentName.trim()) return setError('Please enter your parent or guardian\u2019s name.')
+    if (!parentName.trim()) return setError('Please enter your parent or guardian’s name.')
     if (!parentEmail.trim() || !parentEmail.includes('@')) return setError('Please enter a valid parent/guardian email.')
     if (!goal.trim() || goal.trim().length < 15) return setError('Please tell us what you want to build (at least a sentence).')
     if (!story.trim() || story.trim().length < 40) return setError('Please share a bit more of your story (at least a couple of sentences).')
@@ -125,7 +125,7 @@ export default function ApplyForScholarship() {
           Apply for a scholarship
         </h1>
         <p className="text-lavender-muted max-w-xl">
-          Vibe Coden scholarships cover full access to AI tools, mentorship, and vibe-a-thon entry — <span className="text-white">$0 cost to you.</span> If you\u2019re curious and willing to learn, money shouldn\u2019t stand in your way. Tell us about yourself below.
+          Vibe Coden scholarships cover full access to AI tools, mentorship, and vibe-a-thon entry — <span className="text-white">$0 cost to you.</span> If you’re curious and willing to learn, money shouldn’t stand in your way. Tell us about yourself below.
         </p>
       </div>
 
@@ -184,7 +184,7 @@ export default function ApplyForScholarship() {
             <h2 className="text-xl font-chakra font-bold text-white">Parent or guardian</h2>
           </div>
           <p className="text-sm text-lavender-dim -mt-3">
-            We\u2019ll copy them on any communication about your application.
+            We’ll copy them on any communication about your application.
           </p>
 
           <div className="grid sm:grid-cols-2 gap-4">
@@ -258,7 +258,7 @@ export default function ApplyForScholarship() {
                 className="mt-1 w-5 h-5 accent-orange-primary flex-shrink-0"
               />
               <span className="text-sm text-lavender-muted group-hover:text-lavender">
-                I\u2019m ready to commit to the program and give it my honest effort.
+                I’m ready to commit to the program and give it my honest effort.
               </span>
             </label>
           </div>
@@ -278,7 +278,7 @@ export default function ApplyForScholarship() {
         </button>
 
         <p className="text-xs text-lavender-dim text-center font-mono">
-          You\u2019ll hear back within 7 days · Applications are reviewed by real humans
+          You’ll hear back within 7 days · Applications are reviewed by real humans
         </p>
       </div>
 

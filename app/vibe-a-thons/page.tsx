@@ -60,13 +60,13 @@ export default function VibeatThons() {
   const [stats, setStats] = useState<Stats>({ students: 0, projects_shipped: 0, prizes_awarded: 0, scholarships_awarded: 0 })
 
   useEffect(() => {
-    fetch('/api/vibe-a-thons/current')
+    fetch('/api/vibe-a-thons/current', { cache: 'no-store' })
       .then((r) => r.json())
       .then((data) => setCurrent(data.vibeAThon || null))
       .catch(() => setCurrent(null))
       .finally(() => setLoading(false))
 
-    fetch('/api/vibe-a-thons/list')
+    fetch('/api/vibe-a-thons/list', { cache: 'no-store' })
       .then((r) => r.json())
       .then((data) => {
         const all: VibeAThon[] = data.vibeAThons || []
@@ -74,7 +74,7 @@ export default function VibeatThons() {
       })
       .catch(() => setUpcomingList([]))
 
-    fetch('/api/site-stats')
+    fetch('/api/site-stats', { cache: 'no-store' })
       .then((r) => r.json())
       .then((data) => setStats(data))
       .catch(() => null)
@@ -82,7 +82,7 @@ export default function VibeatThons() {
 
   useEffect(() => {
     if (current?.status === 'ended') {
-      fetch(`/api/vibe-a-thons/${current.id}/winners`)
+      fetch(`/api/vibe-a-thons/${current.id}/winners`, { cache: 'no-store' })
         .then((r) => r.json())
         .then((data) => setWinners(data.winners || []))
         .catch(() => setWinners([]))

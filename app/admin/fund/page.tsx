@@ -86,7 +86,7 @@ export default function AdminFund() {
     if (isNaN(offline) || offline < 0) return setError('Offline donations must be a positive number.')
     if (isNaN(totalSpots) || totalSpots < 0) return setError('Total spots must be a positive number.')
     if (isNaN(fundedSpots) || fundedSpots < 0) return setError('Funded spots must be a positive number.')
-    if (fundedSpots > totalSpots) return setError('Funded spots can\u2019t exceed total spots.')
+    if (fundedSpots > totalSpots) return setError('Funded spots can’t exceed total spots.')
     if (isNaN(sFloor) || sFloor < 0) return setError('Students display floor must be a positive number.')
     if (isNaN(pFloor) || pFloor < 0) return setError('Projects display floor must be a positive number.')
     if (isNaN(przFloor) || przFloor < 0) return setError('Prizes display floor must be a positive number.')
@@ -169,7 +169,7 @@ export default function AdminFund() {
                   value={goalAmount} onChange={(e) => { setGoalAmount(e.target.value); setSuccess(false) }}
                   className="w-full bg-panel-deep border border-violet-border rounded-sm px-4 py-3 text-lavender text-sm outline-none focus:border-violet-accent"
                 />
-                <p className="text-xs text-lavender-dim">Total amount you\u2019re trying to raise (e.g. 20000)</p>
+                <p className="text-xs text-lavender-dim">Total amount you’re trying to raise (e.g. 20000)</p>
               </div>
 
               <div className="space-y-2">
@@ -179,7 +179,7 @@ export default function AdminFund() {
                   value={offlineRaised} onChange={(e) => { setOfflineRaised(e.target.value); setSuccess(false) }}
                   className="w-full bg-panel-deep border border-violet-border rounded-sm px-4 py-3 text-lavender text-sm outline-none focus:border-violet-accent"
                 />
-                <p className="text-xs text-lavender-dim">Checks, wire transfers, matching gifts \u2014 anything received outside Stripe</p>
+                <p className="text-xs text-lavender-dim">Checks, wire transfers, matching gifts — anything received outside Stripe</p>
               </div>
 
               <div className="space-y-2">
@@ -189,7 +189,7 @@ export default function AdminFund() {
                   value={cohortSpotsTotal} onChange={(e) => { setCohortSpotsTotal(e.target.value); setSuccess(false) }}
                   className="w-full bg-panel-deep border border-violet-border rounded-sm px-4 py-3 text-lavender text-sm outline-none focus:border-violet-accent"
                 />
-                <p className="text-xs text-lavender-dim">How many scholarships you\u2019re offering this cohort</p>
+                <p className="text-xs text-lavender-dim">How many scholarships you’re offering this cohort</p>
               </div>
 
               <div className="space-y-2">
@@ -264,7 +264,7 @@ export default function AdminFund() {
               </p>
               <p className="text-xs text-lavender-dim mt-1">
                 {stripeCount === 0
-                  ? 'Stripe isn\u2019t connected yet, so this is $0. Once Stripe is live, real donations will automatically be added to your total.'
+                  ? 'Stripe isn’t connected yet, so this is $0. Once Stripe is live, real donations will automatically be added to your total.'
                   : 'This gets automatically added to your offline donations to calculate the total raised.'}
               </p>
             </div>

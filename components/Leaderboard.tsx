@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAppContext } from '@/app/context'
 
 interface LeaderboardEntry {
@@ -16,39 +16,6 @@ interface LeaderboardEntry {
   tryItUrl: string
 }
 
-const mockLeaderboard: LeaderboardEntry[] = [
-  {
-    id: 'build1', rank: 1, avatar: 'A', title: 'Neon Pong Deluxe',
-    category: 'Game', handle: '@alexcodes', votes: 892,
-    description: 'A two-player Pong game with a retro neon arcade look. Players battle head-to-head using keyboard controls — W/S for the left paddle, Up/Down for the right. The ball speeds up after every 5 hits. First to 10 points wins. Built entirely with AI in one weekend.',
-    builtWith: ['HTML', 'CSS', 'JavaScript', 'Claude AI'], tryItUrl: '#',
-  },
-  {
-    id: 'build2', rank: 2, avatar: 'M', title: 'AI Weather Hub',
-    category: 'App', handle: '@mukesha', votes: 756,
-    description: 'A weather dashboard that uses AI to write funny, personality-filled forecasts instead of boring weather reports. Type in any city and get a real forecast written like a stand-up comedian. "Today in Houston: hotter than your laptop fan during a Zoom call."',
-    builtWith: ['React', 'OpenWeather API', 'Claude AI', 'Tailwind CSS'], tryItUrl: '#',
-  },
-  {
-    id: 'build3', rank: 3, avatar: 'J', title: 'Meme Generator',
-    category: 'Game', handle: '@jakebuilds', votes: 643,
-    description: 'An AI-powered meme generator where you pick a template, type a topic, and AI writes the perfect caption. Includes 20+ classic meme templates, a random mode, and a "make it weirder" button that pushes the humor to the limit.',
-    builtWith: ['Next.js', 'Canvas API', 'Claude AI', 'Cloudinary'], tryItUrl: '#',
-  },
-  {
-    id: 'build4', rank: 4, avatar: 'S', title: 'Study Timer Plus',
-    category: 'App', handle: '@sophiatechs', votes: 521,
-    description: 'A Pomodoro-style study timer that roasts you when your break starts. "Taking a break from calculus? Even the numbers are relieved you stopped." Includes custom timer lengths, session tracking, and a history log of your roasts.',
-    builtWith: ['React', 'Local Storage', 'Claude AI', 'CSS Animations'], tryItUrl: '#',
-  },
-  {
-    id: 'build5', rank: 5, avatar: 'R', title: 'Pixel Art Studio',
-    category: 'Game', handle: '@ryandev', votes: 445,
-    description: 'A browser-based pixel art editor where you draw pixel art, then click "Bring It to Life" and AI animates it and writes a ridiculous backstory for your creation. Supports 16x16 and 32x32 canvas sizes with color palettes.',
-    builtWith: ['Vanilla JS', 'Canvas API', 'Claude AI', 'CSS Grid'], tryItUrl: '#',
-  },
-]
-
 const categoryColors: Record<string, string> = {
   App: 'bg-violet-accent/20 text-violet-accent border border-violet-accent/50',
   Game: 'bg-orange-primary/20 text-orange-primary border border-orange-primary/50',
@@ -56,29 +23,52 @@ const categoryColors: Record<string, string> = {
 }
 
 export const Leaderboard = () => {
-  const { votes: appVotes, voteOnBuild, userVotes, user, projects, isLoggedIn } = useAppContext()
+  const { votes: appVotes, voteOnBuild, userVotes, user, isLoggedIn } = useAppContext()
   const [filter, setFilter] = useState<'ALL' | 'APPS' | 'GAMES' | 'SITES'>('ALL')
   const [localVotes, setLocalVotes] = useState<Record<string, number>>({})
   const [selectedEntry, setSelectedEntry] = useState<LeaderboardEntry | null>(null)
+  const [dbProjects, setDbProjects] = useState<LeaderboardEntry[]>([])
+  const [loading, setLoading] = useState(true)
 
-  // Merge user submitted projects into leaderboard
-  const submittedEntries: LeaderboardEntry[] = projects.map((p, i) => ({
-    id: p.id,
-    rank: mockLeaderboard.length + i + 1,
-    avatar: p.avatar,
-    title: p.title,
-    category: p.category,
-    handle: p.handle,
-    votes: 0,
-    description: p.description,
-    builtWith: ['Claude AI'],
-    tryItUrl: p.liveUrl || '#',
-  }))
+  // Fetch real projects from the database on mount
+  useEffect(() => {
+    fetch('/api/leaderboard', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((data) => {
+        const projects = (data.projects || []) as Array<{
+          id: string
+          title: string
+          description: string
+          category: string
+          handle: string
+          avatar: string
+          votes: number
+          liveUrl: string
+          rank: number
+        }>
+        const entries: LeaderboardEntry[] = projects.map((p) => ({
+          id: p.id,
+          rank: p.rank,
+          avatar: p.avatar,
+          title: p.title,
+          category: (p.category as 'App' | 'Game' | 'Site') || 'App',
+          handle: p.handle,
+          votes: p.votes,
+          description: p.description,
+          builtWith: ['AI'],
+          tryItUrl: p.liveUrl || '#',
+        }))
+        setDbProjects(entries)
+      })
+      .catch(() => setDbProjects([]))
+      .finally(() => setLoading(false))
+  }, [])
 
-  const allEntries = [...submittedEntries, ...mockLeaderboard]
+  // Live vote overlay: whatever the DB says, plus any local unsaved votes this session
+  const allEntries = dbProjects
     .map((e) => ({
       ...e,
-      liveVotes: appVotes[e.id] || e.votes + (localVotes[e.id] || 0),
+      liveVotes: appVotes[e.id] ?? (e.votes + (localVotes[e.id] || 0)),
     }))
     .sort((a, b) => b.liveVotes - a.liveVotes)
     .map((e, i) => ({ ...e, rank: i + 1 }))
@@ -126,16 +116,25 @@ export const Leaderboard = () => {
 
       {/* Entries */}
       <div className="space-y-3">
-        {filtered.map((entry) => {
+        {loading ? (
+          <p className="text-lavender-muted font-mono text-sm text-center py-8">Loading leaderboard...</p>
+        ) : filtered.length === 0 ? (
+          <div className="card p-10 text-center space-y-3">
+            <div className="text-4xl">🚀</div>
+            <p className="font-chakra font-bold text-white">No projects yet</p>
+            <p className="text-sm text-lavender-muted">
+              Be the first to ship something and enter a vibe-a-thon.
+            </p>
+          </div>
+        ) : filtered.map((entry) => {
           const totalVotes = entry.liveVotes
           const voteShareWidth = (totalVotes / maxVotes) * 100
           const voted = hasVoted(entry.id)
-          const isNew = projects.some((p) => p.id === entry.id)
 
           return (
             <div
               key={entry.id}
-              className={`card p-6 flex items-center gap-4 sm:gap-6 ${isNew ? 'border-orange-primary/30' : ''}`}
+              className="card p-6 flex items-center gap-4 sm:gap-6"
             >
               {/* Rank */}
               <div className={`text-xl font-chakra font-bold w-12 h-12 flex-shrink-0 flex items-center justify-center rounded-sm ${
@@ -159,11 +158,6 @@ export const Leaderboard = () => {
                   <span className={`text-xs px-2 py-1 rounded font-mono font-bold ${categoryColors[entry.category]}`}>
                     {entry.category}
                   </span>
-                  {isNew && (
-                    <span className="text-xs px-2 py-1 rounded font-mono font-bold bg-orange-primary/20 text-orange-primary border border-orange-primary/50">
-                      NEW
-                    </span>
-                  )}
                 </div>
                 <p className="text-lavender-dim text-sm font-mono mb-2">{entry.handle}</p>
                 <div className="flex gap-2 items-center">

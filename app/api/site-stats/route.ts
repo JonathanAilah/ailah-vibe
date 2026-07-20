@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 
+export const dynamic = 'force-dynamic'
+
 interface VibeAThonRow { first_prize: number; second_prize: number; third_prize: number; end_date: string }
 
 // Uses Prefer: count=exact header on a HEAD request — cheap, no data transfer
@@ -46,8 +48,7 @@ export async function GET() {
   // Load the floors from fund_settings
   let floors = { ...DEFAULTS }
   try {
-    const res = await fetch(`${supabaseUrl}/rest/v1/fund_settings?select=*&id=eq.1`, {
-      headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` },
+    const res = await fetch(`${supabaseUrl}/rest/v1/fund_settings?select=*&id=eq.1`, { cache: 'no-store', headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` },
     })
     const rows = await res.json()
     if (Array.isArray(rows) && rows[0]) {
@@ -71,9 +72,7 @@ export async function GET() {
   let realPrizes = 0
   try {
     const now = new Date().toISOString()
-    const res = await fetch(
-      `${supabaseUrl}/rest/v1/vibe_a_thons?select=first_prize,second_prize,third_prize,end_date&end_date=lt.${now}`,
-      { headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` } }
+    const res = await fetch(`${supabaseUrl}/rest/v1/vibe_a_thons?select=first_prize,second_prize,third_prize,end_date&end_date=lt.${now}`, { cache: 'no-store', headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` } }
     )
     const rows: VibeAThonRow[] = await res.json()
     if (Array.isArray(rows)) {

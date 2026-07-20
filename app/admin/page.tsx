@@ -84,25 +84,29 @@ export default function AdminDashboard() {
         <p className="text-red-400 font-mono text-sm bg-red-500/10 border border-red-500/30 rounded p-4">⚠ {error}</p>
       ) : stats ? (
         <>
-          {/* Stats grid */}
+          {/* Stats grid — each clickable card links to its detail page */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { label: 'Total Users', value: stats.totalUsers.toLocaleString(), icon: '👥' },
-              { label: 'Total Projects', value: stats.totalProjects.toLocaleString(), icon: '🚀' },
-              { label: 'Total Votes', value: stats.totalVotes.toLocaleString(), icon: '🗳️' },
-              { label: 'Scholarship Apps', value: stats.totalApplications.toLocaleString(), icon: '🎓' },
+              { label: 'Total Users', value: stats.totalUsers.toLocaleString(), icon: '👥', href: '/admin/users' },
+              { label: 'Total Projects', value: stats.totalProjects.toLocaleString(), icon: '🚀', href: '/admin/projects' },
+              { label: 'Total Votes', value: stats.totalVotes.toLocaleString(), icon: '🗳️', href: '/admin/projects' },
+              { label: 'Scholarship Apps', value: stats.totalApplications.toLocaleString(), icon: '🎓', href: '/admin/applications' },
             ].map((stat) => (
-              <div key={stat.label} className="card p-6 space-y-3">
+              <Link
+                key={stat.label}
+                href={stat.href}
+                className="card p-6 space-y-3 hover:border-violet-accent transition-all group cursor-pointer"
+              >
                 <div className="text-2xl">{stat.icon}</div>
-                <p className="text-3xl font-chakra font-bold text-white">{stat.value}</p>
+                <p className="text-3xl font-chakra font-bold text-white group-hover:text-orange-primary transition-colors">{stat.value}</p>
                 <p className="font-mono text-xs text-lavender-dim uppercase tracking-widest">{stat.label}</p>
-              </div>
+              </Link>
             ))}
           </div>
 
-          {/* Donations card */}
-          <div className="card bg-gradient-hero p-8 border border-orange-border">
-            <p className="eyebrow mb-3">// DONATIONS</p>
+          {/* Donations card — click to open the Fund page */}
+          <Link href="/admin/fund" className="block card bg-gradient-hero p-8 border border-orange-border hover:border-orange-primary/60 transition-all group">
+            <p className="eyebrow mb-3 group-hover:text-orange-primary transition-colors">// DONATIONS</p>
             <div className="flex items-end gap-8 flex-wrap">
               <div>
                 <p className="text-4xl font-chakra font-bold text-orange-primary">
@@ -120,7 +124,7 @@ export default function AdminDashboard() {
                 No donations yet — Stripe payments aren't connected to the donation flow yet.
               </p>
             )}
-          </div>
+          </Link>
 
           {/* Quick links */}
           <div className="grid sm:grid-cols-2 gap-4">

@@ -48,7 +48,7 @@ function useLiveActivity() {
 
   useEffect(() => {
     const load = () => {
-      fetch('/api/live-activity')
+      fetch('/api/live-activity', { cache: 'no-store' })
         .then((r) => r.json())
         .then((d) => setEvents(d.events || []))
         .catch(() => null)
@@ -71,7 +71,7 @@ function useSiteStats() {
     scholarships_awarded: number
   } | null>(null)
   useEffect(() => {
-    fetch('/api/site-stats')
+    fetch('/api/site-stats', { cache: 'no-store' })
       .then((r) => r.json())
       .then((d) => setStats(d))
       .catch(() => null)
@@ -91,7 +91,7 @@ function useFundStatus() {
   } | null>(null)
 
   useEffect(() => {
-    fetch('/api/fund-status')
+    fetch('/api/fund-status', { cache: 'no-store' })
       .then((r) => r.json())
       .then((d) => setFund(d))
       .catch(() => null)
@@ -113,7 +113,7 @@ function useNextVibeAThon() {
   } | null>(null)
 
   useEffect(() => {
-    fetch('/api/vibe-a-thons/current')
+    fetch('/api/vibe-a-thons/current', { cache: 'no-store' })
       .then((r) => r.json())
       .then((d) => setVibeAThon(d.vibeAThon || null))
       .catch(() => null)
