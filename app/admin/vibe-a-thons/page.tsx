@@ -61,7 +61,7 @@ export default function AdminVibeAThons() {
     fetch('/api/admin/vibe-a-thons', { headers: { 'x-admin-key': key } })
       .then(async (res) => {
         if (res.status === 401) {
-          sessionStorage.removeItem('vibeCoden_admin_key')
+          localStorage.removeItem('vibeCoden_admin_key')
           router.push('/admin/login')
           return
         }
@@ -73,7 +73,7 @@ export default function AdminVibeAThons() {
   }
 
   useEffect(() => {
-    const key = sessionStorage.getItem('vibeCoden_admin_key')
+    const key = localStorage.getItem('vibeCoden_admin_key')
     if (!key) {
       router.push('/admin/login')
       return
@@ -119,7 +119,7 @@ export default function AdminVibeAThons() {
     if (!endDate) { setFormError('Please set an end date.'); return }
     if (new Date(endDate) <= new Date(startDate)) { setFormError('End date must be after start date.'); return }
 
-    const key = sessionStorage.getItem('vibeCoden_admin_key')
+    const key = localStorage.getItem('vibeCoden_admin_key')
     if (!key) return
     setSaving(true)
 
@@ -161,7 +161,7 @@ export default function AdminVibeAThons() {
   }
 
   const handleDelete = async (id: string) => {
-    const key = sessionStorage.getItem('vibeCoden_admin_key')
+    const key = localStorage.getItem('vibeCoden_admin_key')
     if (!key) return
     try {
       const res = await fetch(`/api/admin/vibe-a-thons/${id}`, {

@@ -30,7 +30,7 @@ export default function AdminUsers() {
     fetch('/api/admin/users', { headers: { 'x-admin-key': key } })
       .then(async (res) => {
         if (res.status === 401) {
-          sessionStorage.removeItem('vibeCoden_admin_key')
+          localStorage.removeItem('vibeCoden_admin_key')
           router.push('/admin/login')
           return
         }
@@ -42,7 +42,7 @@ export default function AdminUsers() {
   }
 
   useEffect(() => {
-    const key = sessionStorage.getItem('vibeCoden_admin_key')
+    const key = localStorage.getItem('vibeCoden_admin_key')
     if (!key) {
       router.push('/admin/login')
       return
@@ -51,7 +51,7 @@ export default function AdminUsers() {
   }, [router])
 
   const handleDelete = async (userId: string) => {
-    const key = sessionStorage.getItem('vibeCoden_admin_key')
+    const key = localStorage.getItem('vibeCoden_admin_key')
     if (!key) return
     setDeletingId(userId)
     try {

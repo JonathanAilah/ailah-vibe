@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -9,6 +9,32 @@ export default function AdminLogin() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [checking, setChecking] = useState(true)
+
+  // If already logged in as admin, skip the form and go straight to the panel
+  useEffect(() => {
+    const key = localStorage.getItem('vibeCoden_admin_key')
+    if (key) {
+      // Verify the key is still valid on the server before redirecting
+      fetch('/api/admin/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: key }),
+      })
+        .then((res) => {
+          if (res.ok) {
+            router.push('/admin')
+          } else {
+            // Stale key — clear it
+            localStorage.removeItem('vibeCoden_admin_key')
+            setChecking(false)
+          }
+        })
+        .catch(() => setChecking(false))
+    } else {
+      setChecking(false)
+    }
+  }, [router])
 
   const handleLogin = async () => {
     setError('')
@@ -23,7 +49,7 @@ export default function AdminLogin() {
       })
       const data = await res.json()
       if (res.ok) {
-        sessionStorage.setItem('vibeCoden_admin_key', password)
+        localStorage.setItem('vibeCoden_admin_key', password)
         router.push('/admin')
       } else {
         setError(data.error || 'Incorrect password.')
@@ -36,6 +62,9 @@ export default function AdminLogin() {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-16">
+      {checking ? (
+        <p className="text-lavender-muted font-mono text-sm">Checking session...</p>
+      ) : (
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-3">
           <Link href="/" className="inline-block font-mono text-xs text-lavender-dim hover:text-lavender transition-colors">
@@ -77,6 +106,7 @@ export default function AdminLogin() {
           </button>
         </div>
       </div>
+      )}
     </div>
   )
 }

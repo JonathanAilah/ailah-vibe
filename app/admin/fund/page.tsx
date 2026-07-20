@@ -37,13 +37,13 @@ export default function AdminFund() {
   const [updatedAt, setUpdatedAt] = useState('')
 
   useEffect(() => {
-    const key = sessionStorage.getItem('vibeCoden_admin_key')
+    const key = localStorage.getItem('vibeCoden_admin_key')
     if (!key) { router.push('/admin/login'); return }
 
     fetch('/api/admin/fund', { headers: { 'x-admin-key': key } })
       .then(async (res) => {
         if (res.status === 401) {
-          sessionStorage.removeItem('vibeCoden_admin_key')
+          localStorage.removeItem('vibeCoden_admin_key')
           router.push('/admin/login')
           return
         }
@@ -70,7 +70,7 @@ export default function AdminFund() {
   const handleSave = async () => {
     setError('')
     setSuccess(false)
-    const key = sessionStorage.getItem('vibeCoden_admin_key')
+    const key = localStorage.getItem('vibeCoden_admin_key')
     if (!key) return
 
     const goal = parseInt(goalAmount)

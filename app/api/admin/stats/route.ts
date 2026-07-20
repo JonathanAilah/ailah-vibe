@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAdmin } from '@/lib/admin/verify'
 
+export const dynamic = 'force-dynamic'
+
 async function getCount(supabaseUrl: string, serviceRoleKey: string, table: string): Promise<number> {
   try {
     const res = await fetch(`${supabaseUrl}/rest/v1/${table}?select=id`, {
       method: 'HEAD',
+      cache: 'no-store',
       headers: {
         apikey: serviceRoleKey,
         Authorization: `Bearer ${serviceRoleKey}`,
@@ -39,28 +42,49 @@ export async function GET(request: NextRequest) {
     getCount(supabaseUrl, serviceRoleKey, 'scholarship_applications'),
   ])
 
-  // Sum donations (small scale — fine to fetch and sum in JS for now)
-  let totalDonationsCents = 0
-  let totalDonationsCount = 0
+  // Sum Stripe (online) donations
+  let stripeCents = 0
+  let stripeCount = 0
   try {
     const donRes = await fetch(`${supabaseUrl}/rest/v1/donations?select=amount_cents`, {
+      cache: 'no-store',
       headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` },
     })
     const rows = await donRes.json()
     if (Array.isArray(rows)) {
-      totalDonationsCount = rows.length
-      totalDonationsCents = rows.reduce((sum: number, r: { amount_cents?: number }) => sum + (r.amount_cents || 0), 0)
+      stripeCount = rows.length
+      stripeCents = rows.reduce((sum: number, r: { amount_cents?: number }) => sum + (r.amount_cents || 0), 0)
     }
   } catch {
     // leave at 0
   }
+
+  // Get offline donations from fund_settings (added by admin manually)
+  let offlineRaised = 0
+  try {
+    const fsRes = await fetch(`${supabaseUrl}/rest/v1/fund_settings?select=offline_raised&id=eq.1`, {
+      cache: 'no-store',
+      headers: { apikey: serviceRoleKey, Authorization: `Bearer ${serviceRoleKey}` },
+    })
+    const fsRows = await fsRes.json()
+    if (Array.isArray(fsRows) && fsRows[0]) {
+      offlineRaised = fsRows[0].offline_raised || 0
+    }
+  } catch {
+    // leave at 0
+  }
+
+  const stripeDollars = stripeCents / 100
+  const totalDonations = stripeDollars + offlineRaised
 
   return NextResponse.json({
     totalUsers,
     totalProjects,
     totalVotes,
     totalApplications,
-    totalDonations: totalDonationsCents / 100,
-    totalDonationsCount,
+    totalDonations,          // combined stripe + offline
+    totalDonationsCount: stripeCount,  // count of individual online transactions
+    stripeDollars,
+    offlineRaised,
   })
 }

@@ -39,7 +39,7 @@ export default function AdminApplications() {
     fetch('/api/admin/applications', { headers: { 'x-admin-key': key } })
       .then(async (res) => {
         if (res.status === 401) {
-          sessionStorage.removeItem('vibeCoden_admin_key')
+          localStorage.removeItem('vibeCoden_admin_key')
           router.push('/admin/login')
           return
         }
@@ -51,13 +51,13 @@ export default function AdminApplications() {
   }
 
   useEffect(() => {
-    const key = sessionStorage.getItem('vibeCoden_admin_key')
+    const key = localStorage.getItem('vibeCoden_admin_key')
     if (!key) { router.push('/admin/login'); return }
     load(key)
   }, [router])
 
   const updateStatus = async (id: string, status: Application['status']) => {
-    const key = sessionStorage.getItem('vibeCoden_admin_key')
+    const key = localStorage.getItem('vibeCoden_admin_key')
     if (!key) return
     try {
       const res = await fetch(`/api/admin/applications/${id}`, {

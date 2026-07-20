@@ -246,6 +246,20 @@ export default function Home() {
                 </div>
               ))}
             </div>
+
+            {/* Donate to general fund */}
+            <Link
+              href="/fund-a-scholarship"
+              className="mt-4 flex items-center justify-between gap-3 px-4 py-3 rounded-[11px] border border-orange-primary/40 bg-orange-primary/10 hover:bg-orange-primary/20 hover:border-orange-primary/60 transition-all group"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="text-lg flex-shrink-0">♥</span>
+                <span className="font-chakra font-bold text-[13px] text-white tracking-wide">
+                  Donate to the general fund
+                </span>
+              </div>
+              <span className="font-mono text-[11px] text-orange-primary group-hover:translate-x-1 transition-transform">→</span>
+            </Link>
           </div>
         </div>
       </section>

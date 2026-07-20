@@ -11,6 +11,8 @@ interface Stats {
   totalApplications: number
   totalDonations: number
   totalDonationsCount: number
+  stripeDollars: number
+  offlineRaised: number
 }
 
 export default function AdminDashboard() {
@@ -20,7 +22,7 @@ export default function AdminDashboard() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    const key = sessionStorage.getItem('vibeCoden_admin_key')
+    const key = localStorage.getItem('vibeCoden_admin_key')
     if (!key) {
       router.push('/admin/login')
       return
@@ -31,7 +33,7 @@ export default function AdminDashboard() {
     })
       .then(async (res) => {
         if (res.status === 401) {
-          sessionStorage.removeItem('vibeCoden_admin_key')
+          localStorage.removeItem('vibeCoden_admin_key')
           router.push('/admin/login')
           return
         }
@@ -43,7 +45,7 @@ export default function AdminDashboard() {
   }, [router])
 
   const handleLogout = () => {
-    sessionStorage.removeItem('vibeCoden_admin_key')
+    localStorage.removeItem('vibeCoden_admin_key')
     router.push('/admin/login')
   }
 
@@ -115,13 +117,23 @@ export default function AdminDashboard() {
                 <p className="font-mono text-xs text-lavender-dim uppercase tracking-widest mt-1">Total Raised</p>
               </div>
               <div>
-                <p className="text-2xl font-chakra font-bold text-white">{stats.totalDonationsCount}</p>
-                <p className="font-mono text-xs text-lavender-dim uppercase tracking-widest mt-1">Donations Received</p>
+                <p className="text-2xl font-chakra font-bold text-white">
+                  ${stats.stripeDollars.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </p>
+                <p className="font-mono text-xs text-lavender-dim uppercase tracking-widest mt-1">
+                  Stripe ({stats.totalDonationsCount} online)
+                </p>
+              </div>
+              <div>
+                <p className="text-2xl font-chakra font-bold text-white">
+                  ${stats.offlineRaised.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </p>
+                <p className="font-mono text-xs text-lavender-dim uppercase tracking-widest mt-1">Offline</p>
               </div>
             </div>
-            {stats.totalDonationsCount === 0 && (
+            {stats.totalDonationsCount === 0 && stats.offlineRaised === 0 && (
               <p className="text-xs text-lavender-dim font-mono mt-4">
-                No donations yet — Stripe payments aren't connected to the donation flow yet.
+                No donations recorded yet. Stripe isn't connected to the site yet, and no offline donations have been entered. Click here to add offline donations.
               </p>
             )}
           </Link>

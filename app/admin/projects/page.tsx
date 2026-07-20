@@ -29,7 +29,7 @@ export default function AdminProjects() {
   const [confirmId, setConfirmId] = useState<string | null>(null)
 
   useEffect(() => {
-    const key = sessionStorage.getItem('vibeCoden_admin_key')
+    const key = localStorage.getItem('vibeCoden_admin_key')
     if (!key) {
       router.push('/admin/login')
       return
@@ -37,7 +37,7 @@ export default function AdminProjects() {
     fetch('/api/admin/projects', { headers: { 'x-admin-key': key } })
       .then(async (res) => {
         if (res.status === 401) {
-          sessionStorage.removeItem('vibeCoden_admin_key')
+          localStorage.removeItem('vibeCoden_admin_key')
           router.push('/admin/login')
           return
         }
@@ -49,7 +49,7 @@ export default function AdminProjects() {
   }, [router])
 
   const handleDelete = async (projectId: string) => {
-    const key = sessionStorage.getItem('vibeCoden_admin_key')
+    const key = localStorage.getItem('vibeCoden_admin_key')
     if (!key) return
     setDeletingId(projectId)
     try {
